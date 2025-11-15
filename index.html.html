@@ -1,0 +1,1193 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ClearSkies Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --accent-blue: #0a84ff;
+      --accent-blue-soft: #d7e7ff;
+      --bg: #f5f7fb;
+      --card-bg: #ffffff;
+      --text-main: #111827;
+      --text-subtle: #6b7280;
+      --border-subtle: #e5e7eb;
+      --green: #16a34a;
+      --yellow: #eab308;
+      --red: #dc2626;
+      --radius-lg: 16px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .app-shell {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-bar {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(245, 247, 251, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .nav-title {
+      font-weight: 600;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tower-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      background: radial-gradient(circle at 30% 20%, #ffffff, #87ceff);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tower-icon::before {
+      content: "";
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 9px;
+      height: 10px;
+      background: #0f172a;
+      border-radius: 2px 2px 0 0;
+    }
+
+    .tower-icon::after {
+      content: "";
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 3px;
+      border-radius: 999px;
+      border: 1px solid #0f172a;
+      background: #e5f2ff;
+    }
+
+    .content {
+      padding: 12px 16px 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .segment-control {
+      display: inline-flex;
+      border-radius: var(--radius-pill);
+      padding: 3px;
+      background: #e5e7eb;
+      align-self: center;
+      margin-top: 4px;
+    }
+
+    .segment {
+      border-radius: var(--radius-pill);
+      padding: 6px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-subtle);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.18s ease, color 0.18s ease, transform 0.12s ease;
+    }
+
+    .segment.active {
+      background: var(--card-bg);
+      color: var(--accent-blue);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+      transform: translateY(-0.5px);
+    }
+
+    .section {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .section-header {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: var(--text-subtle);
+      margin-bottom: 8px;
+    }
+
+    .airport-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: var(--radius-pill);
+      padding: 5px 10px;
+      font-size: 13px;
+      border: 1px solid var(--border-subtle);
+      background: #f9fafb;
+      color: var(--text-main);
+      cursor: default;
+    }
+
+    .chip.home {
+      border-color: var(--accent-blue);
+      background: #eff6ff;
+      color: var(--accent-blue);
+      font-weight: 500;
+    }
+
+    .chip .close {
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--text-subtle);
+    }
+
+    .chip-add {
+      cursor: pointer;
+      border-style: dashed;
+      opacity: 0.9;
+    }
+
+    .chip-add.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    input[type="date"],
+    select,
+    input[type="text"] {
+      font-family: inherit;
+      font-size: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      padding: 7px 10px;
+      background: #f9fafb;
+      color: var(--text-main);
+      outline: none;
+      transition: border 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 1px rgba(10, 132, 255, 0.2);
+      background: #ffffff;
+    }
+
+    .primary-btn {
+      width: 100%;
+      margin-top: 10px;
+      border: none;
+      border-radius: 14px;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, #0a84ff, #2563eb);
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.1s ease, box-shadow 0.12s ease;
+    }
+
+    .primary-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .results-area {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .banner {
+      display: none;
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      font-size: 13px;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      display: none;
+    }
+
+    .airport-cards {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .airport-card {
+      min-width: 260px;
+      max-width: 280px;
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 12px 12px 10px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
+
+    .airport-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .airport-code {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .badge.good {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge.moderate {
+      background: #fef9c3;
+      color: #854d0e;
+    }
+
+    .badge.bad {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .metric-row {
+      font-size: 13px;
+      margin-top: 2px;
+      color: var(--text-subtle);
+    }
+
+    .metric-row span.value {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .risk-list {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+
+    .risk-list li {
+      margin-left: 14px;
+      margin-bottom: 2px;
+    }
+
+    .sparkline {
+      margin-top: 8px;
+      height: 32px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-blue-soft), #eff6ff);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sparkline::after {
+      content: "Delays by hour";
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+
+    .empty-state {
+      font-size: 13px;
+      color: var(--text-subtle);
+      text-align: center;
+      padding: 10px 4px 2px;
+    }
+
+    .live-only {
+      display: none;
+    }
+
+    .live-section .field-row {
+      grid-template-columns: 1.3fr 0.8fr;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      font-size: 11px;
+      padding: 2px 7px;
+      font-weight: 500;
+    }
+
+    .status-chip.low {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-chip.med {
+      background: #fef9c3;
+      color: #854d0e;
+    }
+
+    .status-chip.high {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .live-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px 12px 10px;
+      border: 1px solid var(--border-subtle);
+      font-size: 13px;
+    }
+
+    .live-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .live-route {
+      font-weight: 600;
+    }
+
+    .pill {
+      border-radius: 999px;
+      background: #eff6ff;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: #1d4ed8;
+    }
+
+    .live-detail {
+      margin-top: 4px;
+      color: var(--text-subtle);
+    }
+
+    .live-detail span.value {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .sub-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .sub-chip {
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .sub-chip strong {
+      color: var(--text-main);
+    }
+
+    .bottom-spacer {
+      height: 18px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.3);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 30;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 480px;
+      background: #f9fafb;
+      border-radius: 18px 18px 0 0;
+      padding: 12px 16px 16px;
+      box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.3);
+      animation: slideUp 0.18s ease-out;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--text-subtle);
+    }
+
+    .modal-content {
+      font-size: 13px;
+      color: var(--text-subtle);
+    }
+
+    .airport-select {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .modal-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn-secondary {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-primary-small {
+      border-radius: 999px;
+      border: none;
+      background: var(--accent-blue);
+      color: white;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="nav-bar">
+      <div class="nav-title">
+        <div class="tower-icon"></div>
+        <span>ClearSkies</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="segment-control">
+        <button class="segment active" id="tab-live">Live</button>
+        <button class="segment" id="tab-forecast">Forecast</button>
+      </div>
+
+      <!-- Forecast section -->
+      <div class="section" id="forecast-section">
+        <div class="section-header">
+          <span>Airports</span>
+          <span style="font-size:11px; color:var(--text-subtle);">US only • up to 5</span>
+        </div>
+        <div class="helper-text">Start with your home airport and add others to compare.</div>
+        <div class="airport-chips" id="airport-chips">
+          <!-- Chips inserted via JS -->
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="date-input">Date</label>
+            <input type="date" id="date-input" />
+          </div>
+          <div class="field">
+            <label for="time-window">Time</label>
+            <select id="time-window">
+              <option value="morning">7:00am – 10:00am</option>
+              <option value="midday">11:00am – 2:00pm</option>
+              <option value="afternoon">3:00pm – 6:00pm</option>
+              <option value="evening">7:00pm – 10:00pm</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="primary-btn" id="compare-btn">
+          <span>Compare Forecasts</span>
+        </button>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span>Forecast results</span>
+        </div>
+        <div id="best-banner" class="banner"></div>
+        <div class="results-area">
+          <div id="forecast-empty" class="empty-state">
+            Choose at least one airport and tap <strong>Compare Forecasts</strong> to see how busy things look.
+          </div>
+          <div id="airport-cards" class="airport-cards">
+            <!-- Cards injected via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Live section -->
+      <div class="section" id="live-section">
+        <div class="section-header">
+          <span>Live delay insight</span>
+          <span class="pill" id="live-now-pill">Now • Live snapshot</span>
+        </div>
+        <div class="helper-text" id="live-helper">Smart mock data based on route, time of day, and airport behavior.</div>
+
+        <div class="field-row live-section">
+          <div class="field">
+            <label for="flight-number">Flight</label>
+            <input type="text" id="flight-number" placeholder="e.g. AA123" />
+          </div>
+        </div>
+
+        <button class="primary-btn" id="live-btn" style="margin-top:12px;">
+          <span>Get live risk</span>
+        </button>
+
+        <div id="live-empty" class="empty-state">
+          Enter a flight number to estimate its delay risk for today.
+        </div>
+        <div id="live-result" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- Add Airport Modal -->
+    <div class="modal-backdrop" id="modal-backdrop">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Add airport</div>
+          <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+        <div class="modal-content">
+          Choose a US airport to add another US airport to compare.
+          <select id="airport-select" class="airport-select">
+            <option value="LAX">LAX — Los Angeles</option>
+            <option value="SFO">SFO — San Francisco</option>
+            <option value="JFK">JFK — New York (JFK)</option>
+            <option value="EWR">EWR — Newark</option>
+            <option value="ORD">ORD — Chicago O'Hare</option>
+            <option value="DFW">DFW — Dallas/Fort Worth</option>
+            <option value="DEN">DEN — Denver</option>
+            <option value="ATL">ATL — Atlanta</option>
+            <option value="PHX">PHX — Phoenix</option>
+            <option value="SEA">SEA — Seattle</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="modal-cancel">Cancel</button>
+          <button class="btn-primary-small" id="modal-add">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple state
+    const selectedAirports = ["SAN"]; // default home airport
+    const homeAirport = "SAN";
+
+    const airportProfiles = {
+      SAN: { name: "San Diego Intl", baseBusyness: 55 },
+      LAX: { name: "Los Angeles Intl", baseBusyness: 75 },
+      SFO: { name: "San Francisco Intl", baseBusyness: 70 },
+      JFK: { name: "New York (JFK)", baseBusyness: 80 },
+      EWR: { name: "Newark Liberty", baseBusyness: 72 },
+      ORD: { name: "Chicago O'Hare", baseBusyness: 78 },
+      DFW: { name: "Dallas/Fort Worth", baseBusyness: 65 },
+      DEN: { name: "Denver Intl", baseBusyness: 60 },
+      ATL: { name: "Atlanta (ATL)", baseBusyness: 82 },
+      PHX: { name: "Phoenix Sky Harbor", baseBusyness: 58 },
+      SEA: { name: "Seattle-Tacoma", baseBusyness: 63 }
+    };
+
+    // Helper to seed-ish randomness based on strings
+    function pseudoRandomFromString(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      const x = Math.sin(hash) * 10000;
+      return x - Math.floor(x);
+    }
+
+    function getTimeMultiplier(window) {
+      switch (window) {
+        case "morning": return -8;
+        case "midday": return 5;
+        case "afternoon": return 10;
+        case "evening": return 15;
+        default: return 0;
+      }
+    }
+
+    function getDayOfWeek(dateStr) {
+      const d = dateStr ? new Date(dateStr + "T12:00:00") : new Date();
+      return d.getDay(); // 0 = Sun
+    }
+
+    function getDowMultiplier(dow) {
+      if (dow === 0 || dow === 6) return 5; // weekends a bit busier
+      if (dow === 5) return 8; // Fridays busier
+      return 0;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function computeForecast(airportCode, dateStr, window) {
+      const profile = airportProfiles[airportCode] || { name: airportCode, baseBusyness: 60 };
+      const base = profile.baseBusyness;
+      const dow = getDayOfWeek(dateStr);
+      const tMult = getTimeMultiplier(window);
+      const dowMult = getDowMultiplier(dow);
+
+      const seedKey = airportCode + "|" + dateStr + "|" + window;
+      const rnd = pseudoRandomFromString(seedKey);
+      const noise = (rnd - 0.5) * 12; // -6 to +6
+
+      let score = base + tMult + dowMult + noise;
+      score = clamp(Math.round(score), 10, 95);
+
+      // expected delay: transform from score
+      let minDelay = Math.round((score - 40) / 3);
+      let maxDelay = minDelay + 10;
+      if (minDelay < 0) minDelay = 0;
+      if (maxDelay < 5) maxDelay = 5;
+
+      const onTimeRate = clamp(100 - score + Math.round((1 - rnd) * 8), 45, 95);
+
+      let riskLabel, badgeClass;
+      if (score < 50) {
+        riskLabel = "Clearer skies";
+        badgeClass = "good";
+      } else if (score < 70) {
+        riskLabel = "Moderate congestion";
+        badgeClass = "moderate";
+      } else {
+        setLiveNow();
+        riskLabel = "Heavy congestion";
+        badgeClass = "bad";
+      }
+
+      // Simple risk factors
+      const riskFactors = [];
+      if (tMult > 10 || score > 70) riskFactors.push("Peak departure window");
+      if (dow === 0 || dow === 6) riskFactors.push("Weekend leisure surge");
+      if (dow === 5) riskFactors.push("Friday business + getaway rush");
+      if (Math.abs(noise) > 4) riskFactors.push(rnd > 0.5 ? "Unusual traffic pattern" : "Lighter traffic than typical");
+      if (riskFactors.length === 0) riskFactors.push("Conditions close to typical for this airport.");
+
+      // TSA wait estimates (very rough, based on score)
+      let tsaStdMin = clamp(Math.round((score - 30) / 2.5), 0, 45);
+      let tsaStdMax = tsaStdMin + 10;
+      let tsaPreMin = clamp(Math.round((score - 40) / 3.5), 0, 25);
+      let tsaPreMax = tsaPreMin + 6;
+
+      return {
+        code: airportCode,
+        name: profile.name,
+        score,
+        minDelay,
+        maxDelay,
+        onTimeRate,
+        riskLabel,
+        badgeClass,
+        riskFactors,
+        tsaStdMin,
+        tsaStdMax,
+        tsaPreMin,
+        tsaPreMax
+      };
+    }
+
+    function renderAirportChips() {
+      const container = document.getElementById("airport-chips");
+      container.innerHTML = "";
+      selectedAirports.forEach(code => {
+        const chip = document.createElement("div");
+        chip.className = "chip" + (code === homeAirport ? " home" : "");
+        const label = document.createElement("span");
+        label.textContent = code;
+        chip.appendChild(label);
+        if (code !== homeAirport) {
+          const close = document.createElement("span");
+          close.className = "close";
+          close.textContent = "✕";
+          close.onclick = () => {
+            const index = selectedAirports.indexOf(code);
+            if (index >= 0) {
+              selectedAirports.splice(index, 1);
+              renderAirportChips();
+            }
+          };
+          chip.appendChild(close);
+        } else {
+        setLiveNow();
+          const sub = document.createElement("span");
+          sub.style.fontSize = "11px";
+          sub.style.opacity = "0.8";
+          sub.textContent = " • Home";
+          chip.appendChild(sub);
+        }
+        container.appendChild(chip);
+      });
+
+      const addChip = document.createElement("div");
+      addChip.className = "chip chip-add";
+      if (selectedAirports.length >= 5) {
+        addChip.classList.add("disabled");
+      }
+      const plus = document.createElement("span");
+      plus.textContent = "+ Add airport";
+      addChip.appendChild(plus);
+      if (selectedAirports.length < 5) {
+        addChip.onclick = () => {
+          document.getElementById("modal-backdrop").style.display = "flex";
+        };
+      }
+      container.appendChild(addChip);
+    }
+
+    function renderForecast() {
+      const dateInput = document.getElementById("date-input");
+      const timeWindow = document.getElementById("time-window").value;
+      const dateStr = dateInput.value || new Date().toISOString().split("T")[0];
+
+      if (!selectedAirports.length) return;
+
+      const results = selectedAirports.map(code => computeForecast(code, dateStr, timeWindow));
+
+      const cardsContainer = document.getElementById("airport-cards");
+      const emptyState = document.getElementById("forecast-empty");
+      const banner = document.getElementById("best-banner");
+
+      cardsContainer.innerHTML = "";
+      emptyState.style.display = "none";
+
+      // We no longer show a "Best option" banner per user feedback.
+      banner.style.display = "none";
+      banner.innerHTML = "";
+
+      results.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "airport-card";
+
+        const header = document.createElement("div");
+        header.className = "airport-card-header";
+
+        const left = document.createElement("div");
+        const codeEl = document.createElement("div");
+        codeEl.className = "airport-code";
+        codeEl.textContent = r.code;
+        const nameEl = document.createElement("div");
+        nameEl.style.fontSize = "12px";
+        nameEl.style.color = "var(--text-subtle)";
+        nameEl.textContent = r.name;
+        left.appendChild(codeEl);
+        left.appendChild(nameEl);
+
+        const badge = document.createElement("div");
+        badge.className = "badge " + r.badgeClass;
+        badge.textContent = r.riskLabel;
+
+        header.appendChild(left);
+        header.appendChild(badge);
+
+        const m1 = document.createElement("div");
+        m1.className = "metric-row";
+        m1.innerHTML = "Busy score: <span class='value'>" + r.score + "/100</span>";
+
+        const m2 = document.createElement("div");
+        m2.className = "metric-row";
+        m2.innerHTML = "Expected delay: <span class='value'>" + r.minDelay + "–" + r.maxDelay + " min</span>";
+
+        const m3 = document.createElement("div");
+        m3.className = "metric-row";
+        m3.innerHTML = "On-time departures: <span class='value'>~" + r.onTimeRate + "%</span>";
+
+        const riskUl = document.createElement("ul");
+        riskUl.className = "risk-list";
+        r.riskFactors.forEach(txt => {
+          const li = document.createElement("li");
+          li.textContent = txt;
+          riskUl.appendChild(li);
+        });
+
+        const spark = document.createElement("div");
+        spark.className = "sparkline";
+
+        const m4 = document.createElement("div");
+        m4.className = "metric-row";
+        m4.innerHTML = "TSA Standard: <span class='value'>" + r.tsaStdMin + "–" + r.tsaStdMax + " min</span>";
+
+        const m5 = document.createElement("div");
+        m5.className = "metric-row";
+        m5.innerHTML = "TSA PreCheck: <span class='value'>" + r.tsaPreMin + "–" + r.tsaPreMax + " min</span>";
+
+        card.appendChild(header);
+        card.appendChild(m1);
+        card.appendChild(m2);
+        card.appendChild(m3);
+        card.appendChild(m4);
+        card.appendChild(m5);
+        card.appendChild(riskUl);
+        card.appendChild(spark);
+
+        cardsContainer.appendChild(card);
+      });
+    }
+
+    function setTodayOnDateInputs() {
+      const today = new Date().toISOString().split("T")[0];
+      const forecastDateInput = document.getElementById("date-input");
+      if (forecastDateInput) {
+        forecastDateInput.value = today;
+      }
+    }
+
+    function setLiveNow() {
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
+
+      // Keep forecast date in sync with "now" for live context
+      const forecastDateInput = document.getElementById("date-input");
+      if (forecastDateInput) {
+        forecastDateInput.value = todayStr;
+      }
+
+      // Snap time window to the current time of day
+      const timeWindowSelect = document.getElementById("time-window");
+      if (timeWindowSelect) {
+        const hour = now.getHours();
+        let windowVal = "evening";
+        if (hour >= 7 && hour < 11) windowVal = "morning";
+        else if (hour >= 11 && hour < 15) windowVal = "midday";
+        else if (hour >= 15 && hour < 19) windowVal = "afternoon";
+        else windowVal = "evening";
+        timeWindowSelect.value = windowVal;
+      }
+
+      // Update helper text with "as of" time stamp
+      const helper = document.getElementById("live-helper");
+      if (helper) {
+        const opts = { hour: 'numeric', minute: '2-digit' };
+        helper.textContent = "Smart mock data based on route, time of day, and airport behavior. As of " + now.toLocaleTimeString([], opts) + ".";
+      }
+    }
+
+function switchTab(tab) {
+      const forecastTab = document.getElementById("tab-forecast");
+      const liveTab = document.getElementById("tab-live");
+      const forecastSection = document.getElementById("forecast-section");
+      const liveSection = document.getElementById("live-section");
+
+      if (tab === "forecast") {
+        forecastTab.classList.add("active");
+        liveTab.classList.remove("active");
+        forecastSection.style.display = "block";
+        liveSection.classList.add("live-only");
+      } else {
+        setLiveNow();
+        liveTab.classList.add("active");
+        forecastTab.classList.remove("active");
+        forecastSection.style.display = "block"; // keep it visible above
+        liveSection.classList.remove("live-only");
+      }
+    }
+
+    function computeLiveRisk(flight, dateStr) {
+      // Very simple mock based on characters + time
+      const upper = (flight || "AA123").toUpperCase().trim();
+      const letters = upper.replace(/[^A-Z]/g, "") || "AA";
+      const numbers = parseInt(upper.replace(/[^0-9]/g, ""), 10) || 123;
+      const seedKey = upper + "|" + dateStr;
+      const rnd = pseudoRandomFromString(seedKey);
+
+      // base risk from flight number mag
+      let baseRisk = (numbers % 90) / 100; // 0–0.9
+      baseRisk = (baseRisk + rnd * 0.5) / 1.5;
+
+      let bucket;
+      if (baseRisk < 0.35) bucket = "low";
+      else if (baseRisk < 0.7) bucket = "med";
+      else bucket = "high";
+
+      const reasons = [];
+      if (bucket !== "low") {
+        if (rnd > 0.6) {
+          reasons.push("Inbound aircraft running ~" + Math.round(20 + rnd * 40) + " min late.");
+        }
+        if (rnd < 0.3) {
+          reasons.push("Tighter-than-ideal turnaround time at the gate.");
+        }
+        if (rnd >= 0.3 && rnd <= 0.6) {
+          reasons.push("Busier-than-typical departure window for this route.");
+        }
+      } else {
+        reasons.push("Inbound aircraft appears close to on time.");
+        reasons.push("Turnaround time is comfortable for this departure.");
+      }
+
+      const etaShift = Math.round((baseRisk * 60) / 5) * 5; // in 5-min increments
+      const cancelChance = Math.round(baseRisk * 18);
+
+      // Mock aircraft location based on seeded randomness
+      const sampleAirports = ["ORD","PHX","DFW","LAX","SFO","DEN","ATL","JFK","SEA","BOS","MIA","IAH","CLT","LAS","MSP"];
+      const idx1 = Math.floor(rnd * sampleAirports.length);
+      const idx2 = (idx1 + 3) % sampleAirports.length;
+      const currentLoc = sampleAirports[idx1];
+      const nextDest = sampleAirports[idx2];
+
+      return { bucket, reasons, etaShift, cancelChance, currentLoc, nextDest };
+    }
+
+function renderLiveResult() {
+      const flight = document.getElementById("flight-number").value || "AA123";
+      const dateStr = new Date().toISOString().split("T")[0];
+      const result = computeLiveRisk(flight, dateStr);
+
+      const container = document.getElementById("live-result");
+      const empty = document.getElementById("live-empty");
+      empty.style.display = "none";
+      container.innerHTML = "";
+
+      const card = document.createElement("div");
+      card.className = "live-card";
+
+      const header = document.createElement("div");
+      header.className = "live-card-header";
+
+      const route = document.createElement("div");
+      route.className = "live-route";
+      route.textContent = flight.toUpperCase() + " • Your route";
+
+      const chip = document.createElement("div");
+      chip.className = "status-chip " + result.bucket;
+      let label, emoji;
+      if (result.bucket === "low") {
+        label = "Low delay risk";
+        emoji = "✅";
+      } else if (result.bucket === "med") {
+        label = "Moderate risk";
+        emoji = "⚠️";
+      } else {
+        setLiveNow();
+        label = "High delay risk";
+        emoji = "⏱";
+      }
+      chip.textContent = label + " " + emoji;
+
+      header.appendChild(route);
+      header.appendChild(chip);
+
+      const eta = document.createElement("div");
+      eta.className = "live-detail";
+      const shiftText = result.etaShift <= 0 ?
+        "on or very close to schedule" :
+        result.etaShift + " min later than scheduled";
+      eta.innerHTML = "Departure outlook: <span class='value'>" + shiftText + "</span>.";
+
+      const cancel = document.createElement("div");
+      cancel.className = "live-detail";
+      cancel.innerHTML = "Chance of significant disruption: <span class='value'>~" + result.cancelChance + "%</span> (mock estimate).";
+
+      // Aircraft location (mocked for prototype)
+      const acLoc = document.createElement("div");
+      acLoc.className = "live-detail";
+      // Decide whether aircraft is on the ground or in the air
+      let state = (result.etaShift > 10 ? "air" : "ground");
+      if (state === "ground") {
+        acLoc.innerHTML = "Aircraft status: <span class='value'>On the ground at " + result.currentLoc + ".</span>";
+      } else {
+        acLoc.innerHTML = "Aircraft status: <span class='value'>In the air, en route to " + result.nextDest + ".</span>";
+      }
+
+      const reasonsList = document.createElement("div");
+      reasonsList.className = "live-detail";
+      reasonsList.style.marginTop = "6px";
+      reasonsList.textContent = "Why we think that:";
+      reasonsList.className = "live-detail";
+      reasonsList.style.marginTop = "6px";
+      reasonsList.textContent = "Why we think that:";
+
+      const ul = document.createElement("ul");
+      ul.style.marginTop = "4px";
+      ul.style.paddingLeft = "18px";
+      ul.style.fontSize = "12px";
+      result.reasons.forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = r;
+        ul.appendChild(li);
+      });
+
+      const subActions = document.createElement("div");
+      subActions.className = "sub-actions";
+      const chip1 = document.createElement("div");
+      chip1.className = "sub-chip";
+      chip1.innerHTML = "🛰 <strong>Track inbound</strong>";
+      const chip2 = document.createElement("div");
+      chip2.className = "sub-chip";
+      chip2.innerHTML = "🔔 <strong>Alert me if risk rises</strong>";
+
+      subActions.appendChild(chip1);
+      subActions.appendChild(chip2);
+
+      card.appendChild(header);
+      card.appendChild(eta);
+      card.appendChild(cancel);
+      card.appendChild(acLoc);
+      card.appendChild(reasonsList);
+      card.appendChild(ul);
+      card.appendChild(subActions);
+
+      container.appendChild(card);
+    }
+
+    // Event listeners + init
+    document.addEventListener("DOMContentLoaded", () => {
+      renderAirportChips();
+      setTodayOnDateInputs();
+      switchTab("live");
+
+      document.getElementById("compare-btn").onclick = () => {
+        if (!selectedAirports.length) return;
+        renderForecast();
+      };
+
+      document.getElementById("tab-forecast").onclick = () => switchTab("forecast");
+      document.getElementById("tab-live").onclick = () => switchTab("live");
+
+      document.getElementById("modal-close").onclick = () => {
+        document.getElementById("modal-backdrop").style.display = "none";
+      };
+      document.getElementById("modal-cancel").onclick = () => {
+        document.getElementById("modal-backdrop").style.display = "none";
+      };
+      document.getElementById("modal-add").onclick = () => {
+        const select = document.getElementById("airport-select");
+        const code = select.value;
+        if (!selectedAirports.includes(code) && selectedAirports.length < 5) {
+          selectedAirports.push(code);
+          renderAirportChips();
+        }
+        document.getElementById("modal-backdrop").style.display = "none";
+      };
+
+      document.getElementById("live-btn").onclick = () => {
+        renderLiveResult();
+      };
+    });
+  </script>
+</body>
+</html>
