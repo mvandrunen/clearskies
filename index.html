@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ClearSkies Prototype</title>
+  <title>ClearSkies – Forecast + Live</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
@@ -22,9 +21,7 @@
       --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -105,34 +102,6 @@
       gap: 16px;
     }
 
-    .segment-control {
-      display: inline-flex;
-      border-radius: var(--radius-pill);
-      padding: 3px;
-      background: #e5e7eb;
-      align-self: center;
-      margin-top: 4px;
-    }
-
-    .segment {
-      border-radius: var(--radius-pill);
-      padding: 6px 18px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-subtle);
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      transition: background 0.18s ease, color 0.18s ease, transform 0.12s ease;
-    }
-
-    .segment.active {
-      background: var(--card-bg);
-      color: var(--accent-blue);
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
-      transform: translateY(-0.5px);
-    }
-
     .section {
       background: var(--card-bg);
       border-radius: var(--radius-lg);
@@ -177,7 +146,7 @@
     .chip.home {
       border-color: var(--accent-blue);
       background: #eff6ff;
-      color: var(--accent-blue);
+      color: #1d4ed8;
       font-weight: 500;
     }
 
@@ -255,7 +224,6 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: transform 0.1s ease, box-shadow 0.12s ease;
     }
 
     .primary-btn:active {
@@ -273,17 +241,6 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-    }
-
-    .banner {
-      display: none;
-      border-radius: var(--radius-lg);
-      padding: 10px 12px;
-      font-size: 13px;
-      background: #dcfce7;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-      display: none;
     }
 
     .airport-cards {
@@ -325,20 +282,9 @@
       font-weight: 500;
     }
 
-    .badge.good {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .badge.moderate {
-      background: #fef9c3;
-      color: #854d0e;
-    }
-
-    .badge.bad {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
+    .badge.good  { background: #dcfce7; color: #166534; }
+    .badge.moderate { background: #fef9c3; color: #854d0e; }
+    .badge.bad   { background: #fee2e2; color: #b91c1c; }
 
     .metric-row {
       font-size: 13px;
@@ -389,14 +335,6 @@
       padding: 10px 4px 2px;
     }
 
-    .live-only {
-      display: none;
-    }
-
-    .live-section .field-row {
-      grid-template-columns: 1.3fr 0.8fr;
-    }
-
     .status-chip {
       display: inline-flex;
       align-items: center;
@@ -407,19 +345,16 @@
       font-weight: 500;
     }
 
-    .status-chip.low {
-      background: #dcfce7;
-      color: #166534;
-    }
+    .status-chip.low  { background: #dcfce7; color: #166534; }
+    .status-chip.med  { background: #fef9c3; color: #854d0e; }
+    .status-chip.high { background: #fee2e2; color: #b91c1c; }
 
-    .status-chip.med {
-      background: #fef9c3;
-      color: #854d0e;
-    }
-
-    .status-chip.high {
-      background: #fee2e2;
-      color: #b91c1c;
+    .pill {
+      border-radius: 999px;
+      background: #eff6ff;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: #1d4ed8;
     }
 
     .live-card {
@@ -438,17 +373,7 @@
       margin-bottom: 6px;
     }
 
-    .live-route {
-      font-weight: 600;
-    }
-
-    .pill {
-      border-radius: 999px;
-      background: #eff6ff;
-      padding: 2px 8px;
-      font-size: 11px;
-      color: #1d4ed8;
-    }
+    .live-route { font-weight: 600; }
 
     .live-detail {
       margin-top: 4px;
@@ -460,26 +385,30 @@
       font-weight: 500;
     }
 
-    .sub-actions {
-      margin-top: 8px;
-      display: flex;
-      gap: 8px;
+    .live-reasons-title {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+
+    .live-reasons-list {
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+
+    .live-reasons-list li {
+      margin-left: 14px;
+      margin-bottom: 2px;
+    }
+
+    .bottom-spacer { height: 18px; }
+
+    .footer-note {
+      text-align: center;
       font-size: 11px;
-    }
-
-    .sub-chip {
-      border-radius: 999px;
-      padding: 4px 8px;
-      background: #f3f4f6;
-      color: #4b5563;
-    }
-
-    .sub-chip strong {
-      color: var(--text-main);
-    }
-
-    .bottom-spacer {
-      height: 18px;
+      color: #9ca3af;
+      margin-top: 4px;
     }
 
     .modal-backdrop {
@@ -530,7 +459,13 @@
 
     .airport-select {
       width: 100%;
+      margin-top: 6px;
+    }
+
+    .airport-search-input {
+      width: 100%;
       margin-top: 8px;
+      margin-bottom: 6px;
     }
 
     .modal-actions {
@@ -561,12 +496,8 @@
     }
 
     @keyframes slideUp {
-      from {
-        transform: translateY(100%);
-      }
-      to {
-        transform: translateY(0);
-      }
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
     }
   </style>
 </head>
@@ -580,21 +511,14 @@
     </div>
 
     <div class="content">
-      <div class="segment-control">
-        <button class="segment active" id="tab-live">Live</button>
-        <button class="segment" id="tab-forecast">Forecast</button>
-      </div>
-
       <!-- Forecast section -->
       <div class="section" id="forecast-section">
         <div class="section-header">
           <span>Airports</span>
           <span style="font-size:11px; color:var(--text-subtle);">US only • up to 5</span>
         </div>
-        <div class="helper-text">Start with your home airport and add others to compare.</div>
-        <div class="airport-chips" id="airport-chips">
-          <!-- Chips inserted via JS -->
-        </div>
+        <div class="helper-text">Start with your main airport and add others to compare.</div>
+        <div class="airport-chips" id="airport-chips"></div>
 
         <div class="field-row">
           <div class="field">
@@ -613,7 +537,7 @@
         </div>
 
         <button class="primary-btn" id="compare-btn">
-          <span>Compare Forecasts</span>
+          <span>Update forecast</span>
         </button>
       </div>
 
@@ -621,14 +545,11 @@
         <div class="section-header">
           <span>Forecast results</span>
         </div>
-        <div id="best-banner" class="banner"></div>
         <div class="results-area">
           <div id="forecast-empty" class="empty-state">
-            Choose at least one airport and tap <strong>Compare Forecasts</strong> to see how busy things look.
+            Choose at least one airport and tap <strong>Update forecast</strong> to see how busy things look.
           </div>
-          <div id="airport-cards" class="airport-cards">
-            <!-- Cards injected via JS -->
-          </div>
+          <div id="airport-cards" class="airport-cards"></div>
         </div>
       </div>
 
@@ -638,9 +559,11 @@
           <span>Live delay insight</span>
           <span class="pill" id="live-now-pill">Now • Live snapshot</span>
         </div>
-        <div class="helper-text" id="live-helper">Smart mock data based on route, time of day, and airport behavior.</div>
+        <div class="helper-text" id="live-helper">
+          Smart mock data based on route, time of day, and airport behavior.
+        </div>
 
-        <div class="field-row live-section">
+        <div class="field-row" style="grid-template-columns:1fr">
           <div class="field">
             <label for="flight-number">Flight</label>
             <input type="text" id="flight-number" placeholder="e.g. AA123" />
@@ -658,6 +581,7 @@
       </div>
 
       <div class="bottom-spacer"></div>
+      <div class="footer-note">ClearSkies Labs</div>
     </div>
 
     <!-- Add Airport Modal -->
@@ -668,18 +592,41 @@
           <button class="modal-close" id="modal-close">&times;</button>
         </div>
         <div class="modal-content">
-          Choose a US airport to add another US airport to compare.
-          <select id="airport-select" class="airport-select">
-            <option value="LAX">LAX — Los Angeles</option>
-            <option value="SFO">SFO — San Francisco</option>
+          <div>Choose a US airport to add to your comparison.</div>
+          <input
+            type="text"
+            id="airport-search"
+            class="airport-search-input"
+            placeholder="Search airports…"
+          />
+          <select id="airport-select" class="airport-select" size="8">
+            <option value="SAN">SAN — San Diego Intl</option>
+            <option value="LAX">LAX — Los Angeles Intl</option>
+            <option value="SFO">SFO — San Francisco Intl</option>
             <option value="JFK">JFK — New York (JFK)</option>
-            <option value="EWR">EWR — Newark</option>
+            <option value="LGA">LGA — New York (LaGuardia)</option>
+            <option value="EWR">EWR — Newark Liberty</option>
             <option value="ORD">ORD — Chicago O'Hare</option>
+            <option value="MDW">MDW — Chicago Midway</option>
             <option value="DFW">DFW — Dallas/Fort Worth</option>
-            <option value="DEN">DEN — Denver</option>
-            <option value="ATL">ATL — Atlanta</option>
-            <option value="PHX">PHX — Phoenix</option>
-            <option value="SEA">SEA — Seattle</option>
+            <option value="IAH">IAH — Houston (Bush)</option>
+            <option value="DEN">DEN — Denver Intl</option>
+            <option value="ATL">ATL — Atlanta (ATL)</option>
+            <option value="BOS">BOS — Boston Logan</option>
+            <option value="PHL">PHL — Philadelphia Intl</option>
+            <option value="PHX">PHX — Phoenix Sky Harbor</option>
+            <option value="SEA">SEA — Seattle-Tacoma</option>
+            <option value="SLC">SLC — Salt Lake City</option>
+            <option value="MCO">MCO — Orlando Intl</option>
+            <option value="MIA">MIA — Miami Intl</option>
+            <option value="FLL">FLL — Fort Lauderdale-Hollywood</option>
+            <option value="LAS">LAS — Las Vegas (LAS)</option>
+            <option value="CLT">CLT — Charlotte Douglas</option>
+            <option value="DTW">DTW — Detroit Metro</option>
+            <option value="MSP">MSP — Minneapolis–St. Paul</option>
+            <option value="BWI">BWI — Baltimore/Washington</option>
+            <option value="DCA">DCA — Washington Reagan</option>
+            <option value="IAD">IAD — Washington Dulles</option>
           </select>
         </div>
         <div class="modal-actions">
@@ -691,25 +638,7 @@
   </div>
 
   <script>
-    // Simple state
-    const selectedAirports = ["SAN"]; // default home airport
-    const homeAirport = "SAN";
-
-    const airportProfiles = {
-      SAN: { name: "San Diego Intl", baseBusyness: 55 },
-      LAX: { name: "Los Angeles Intl", baseBusyness: 75 },
-      SFO: { name: "San Francisco Intl", baseBusyness: 70 },
-      JFK: { name: "New York (JFK)", baseBusyness: 80 },
-      EWR: { name: "Newark Liberty", baseBusyness: 72 },
-      ORD: { name: "Chicago O'Hare", baseBusyness: 78 },
-      DFW: { name: "Dallas/Fort Worth", baseBusyness: 65 },
-      DEN: { name: "Denver Intl", baseBusyness: 60 },
-      ATL: { name: "Atlanta (ATL)", baseBusyness: 82 },
-      PHX: { name: "Phoenix Sky Harbor", baseBusyness: 58 },
-      SEA: { name: "Seattle-Tacoma", baseBusyness: 63 }
-    };
-
-    // Helper to seed-ish randomness based on strings
+    // ---------- Shared utilities ----------
     function pseudoRandomFromString(str) {
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
@@ -718,6 +647,10 @@
       }
       const x = Math.sin(hash) * 10000;
       return x - Math.floor(x);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
     }
 
     function getTimeMultiplier(window) {
@@ -732,72 +665,93 @@
 
     function getDayOfWeek(dateStr) {
       const d = dateStr ? new Date(dateStr + "T12:00:00") : new Date();
-      return d.getDay(); // 0 = Sun
+      return d.getDay();
     }
 
     function getDowMultiplier(dow) {
-      if (dow === 0 || dow === 6) return 5; // weekends a bit busier
-      if (dow === 5) return 8; // Fridays busier
+      if (dow === 0 || dow === 6) return 5;
+      if (dow === 5) return 8;
       return 0;
     }
 
-    function clamp(value, min, max) {
-      return Math.min(max, Math.max(min, value));
-    }
+    // ---------- Forecast state + data ----------
+    let selectedAirports = ["SAN"];
+    let homeAirport = selectedAirports[0] || null;
 
-    function computeForecast(airportCode, dateStr, window) {
+    const airportProfiles = {
+      SAN: { name: "San Diego Intl", baseBusyness: 55 },
+      LAX: { name: "Los Angeles Intl", baseBusyness: 75 },
+      SFO: { name: "San Francisco Intl", baseBusyness: 70 },
+      JFK: { name: "New York (JFK)", baseBusyness: 80 },
+      LGA: { name: "New York (LaGuardia)", baseBusyness: 78 },
+      EWR: { name: "Newark Liberty", baseBusyness: 72 },
+      ORD: { name: "Chicago O'Hare", baseBusyness: 78 },
+      MDW: { name: "Chicago Midway", baseBusyness: 65 },
+      DFW: { name: "Dallas/Fort Worth", baseBusyness: 65 },
+      DEN: { name: "Denver Intl", baseBusyness: 60 },
+      ATL: { name: "Atlanta (ATL)", baseBusyness: 82 },
+      BOS: { name: "Boston Logan", baseBusyness: 68 },
+      PHL: { name: "Philadelphia Intl", baseBusyness: 67 },
+      PHX: { name: "Phoenix Sky Harbor", baseBusyness: 58 },
+      SEA: { name: "Seattle-Tacoma", baseBusyness: 63 },
+      SLC: { name: "Salt Lake City", baseBusyness: 55 },
+      MCO: { name: "Orlando Intl", baseBusyness: 70 },
+      MIA: { name: "Miami Intl", baseBusyness: 76 },
+      FLL: { name: "Fort Lauderdale-Hollywood", baseBusyness: 64 },
+      LAS: { name: "Las Vegas (LAS)", baseBusyness: 72 },
+      CLT: { name: "Charlotte Douglas", baseBusyness: 65 },
+      DTW: { name: "Detroit Metro", baseBusyness: 62 },
+      MSP: { name: "Minneapolis–St. Paul", baseBusyness: 60 },
+      BWI: { name: "Baltimore/Washington", baseBusyness: 58 },
+      DCA: { name: "Washington Reagan", baseBusyness: 64 },
+      IAD: { name: "Washington Dulles", baseBusyness: 66 },
+      IAH: { name: "Houston (Bush)", baseBusyness: 68 }
+    };
+
+    function computeForecast(airportCode, dateStr, timeWindow) {
       const profile = airportProfiles[airportCode] || { name: airportCode, baseBusyness: 60 };
       const base = profile.baseBusyness;
       const dow = getDayOfWeek(dateStr);
-      const tMult = getTimeMultiplier(window);
-      const dowMult = getDowMultiplier(dow);
-
-      const seedKey = airportCode + "|" + dateStr + "|" + window;
+      const timeAdj = getTimeMultiplier(timeWindow);
+      const dowAdj = getDowMultiplier(dow);
+      const seedKey = airportCode + "|" + dateStr + "|" + timeWindow;
       const rnd = pseudoRandomFromString(seedKey);
-      const noise = (rnd - 0.5) * 12; // -6 to +6
+      const noise = (rnd - 0.5) * 10;
 
-      let score = base + tMult + dowMult + noise;
+      let score = base + timeAdj + dowAdj + noise;
       score = clamp(Math.round(score), 10, 95);
 
-      // expected delay: transform from score
-      let minDelay = Math.round((score - 40) / 3);
-      let maxDelay = minDelay + 10;
-      if (minDelay < 0) minDelay = 0;
-      if (maxDelay < 5) maxDelay = 5;
+      const minDelay = clamp(Math.round((score - 30) / 3), 0, 45);
+      const maxDelay = minDelay + 10;
 
-      const onTimeRate = clamp(100 - score + Math.round((1 - rnd) * 8), 45, 95);
+      let onTimeRate = 100 - score + Math.round((rnd - 0.5) * 10);
+      onTimeRate = clamp(onTimeRate, 55, 95);
 
-      let riskLabel, badgeClass;
-      if (score < 50) {
-        riskLabel = "Clearer skies";
+      let riskLabel = "Moderate delays";
+      let badgeClass = "moderate";
+      if (score < 40) {
+        riskLabel = "Smooth flow likely";
         badgeClass = "good";
-      } else if (score < 70) {
-        riskLabel = "Moderate congestion";
-        badgeClass = "moderate";
-      } else {
-        setLiveNow();
-        riskLabel = "Heavy congestion";
+      } else if (score > 70) {
+        riskLabel = "Expect meaningful delays";
         badgeClass = "bad";
       }
 
-      // Simple risk factors
       const riskFactors = [];
-      if (tMult > 10 || score > 70) riskFactors.push("Peak departure window");
-      if (dow === 0 || dow === 6) riskFactors.push("Weekend leisure surge");
-      if (dow === 5) riskFactors.push("Friday business + getaway rush");
-      if (Math.abs(noise) > 4) riskFactors.push(rnd > 0.5 ? "Unusual traffic pattern" : "Lighter traffic than typical");
-      if (riskFactors.length === 0) riskFactors.push("Conditions close to typical for this airport.");
+      if (dow === 0 || dow === 6) riskFactors.push("Weekend leisure surge.");
+      if (dow === 5) riskFactors.push("Friday peak travel pattern.");
+      if (timeWindow === "morning") riskFactors.push("Morning bank of departures.");
+      if (timeWindow === "evening") riskFactors.push("Evening bank of returns.");
+      if (riskFactors.length === 0) riskFactors.push("Typical traffic pattern for this route window.");
 
-      // TSA wait estimates (very rough, based on score)
-      let tsaStdMin = clamp(Math.round((score - 30) / 2.5), 0, 45);
-      let tsaStdMax = tsaStdMin + 10;
-      let tsaPreMin = clamp(Math.round((score - 40) / 3.5), 0, 25);
-      let tsaPreMax = tsaPreMin + 6;
+      const tsaStdMin = clamp(Math.round((score - 30) / 2.5), 0, 45);
+      const tsaStdMax = tsaStdMin + 10;
+      const tsaPreMin = clamp(Math.round((score - 40) / 3.5), 0, 25);
+      const tsaPreMax = tsaPreMin + 6;
 
       return {
         code: airportCode,
         name: profile.name,
-        score,
         minDelay,
         maxDelay,
         onTimeRate,
@@ -814,70 +768,65 @@
     function renderAirportChips() {
       const container = document.getElementById("airport-chips");
       container.innerHTML = "";
+
       selectedAirports.forEach(code => {
         const chip = document.createElement("div");
-        chip.className = "chip" + (code === homeAirport ? " home" : "");
+        if (code === homeAirport) {
+          chip.className = "chip home";
+        } else {
+          chip.className = "chip";
+        }
+
         const label = document.createElement("span");
-        label.textContent = code;
+        label.textContent = code + (airportProfiles[code] ? " — " + airportProfiles[code].name : "");
         chip.appendChild(label);
-        if (code !== homeAirport) {
+
+        if (selectedAirports.length > 0) {
           const close = document.createElement("span");
           close.className = "close";
-          close.textContent = "✕";
-          close.onclick = () => {
-            const index = selectedAirports.indexOf(code);
-            if (index >= 0) {
-              selectedAirports.splice(index, 1);
+          close.textContent = "×";
+          close.addEventListener("click", () => {
+            const idx = selectedAirports.indexOf(code);
+            if (idx !== -1) {
+              selectedAirports.splice(idx, 1);
+              homeAirport = selectedAirports[0] || null;
               renderAirportChips();
+              renderForecastResults();
             }
-          };
+          });
           chip.appendChild(close);
-        } else {
-        setLiveNow();
-          const sub = document.createElement("span");
-          sub.style.fontSize = "11px";
-          sub.style.opacity = "0.8";
-          sub.textContent = " • Home";
-          chip.appendChild(sub);
         }
+
         container.appendChild(chip);
       });
 
       const addChip = document.createElement("div");
       addChip.className = "chip chip-add";
+      addChip.id = "add-airport-chip";
+      addChip.textContent = selectedAirports.length >= 5 ? "+ Add airport (max reached)" : "+ Add airport";
       if (selectedAirports.length >= 5) {
         addChip.classList.add("disabled");
-      }
-      const plus = document.createElement("span");
-      plus.textContent = "+ Add airport";
-      addChip.appendChild(plus);
-      if (selectedAirports.length < 5) {
-        addChip.onclick = () => {
-          document.getElementById("modal-backdrop").style.display = "flex";
-        };
+      } else {
+        addChip.addEventListener("click", () => openAirportModal());
       }
       container.appendChild(addChip);
     }
 
-    function renderForecast() {
-      const dateInput = document.getElementById("date-input");
-      const timeWindow = document.getElementById("time-window").value;
-      const dateStr = dateInput.value || new Date().toISOString().split("T")[0];
+    function renderForecastResults() {
+      const emptyEl = document.getElementById("forecast-empty");
+      const cardsEl = document.getElementById("airport-cards");
+      cardsEl.innerHTML = "";
 
-      if (!selectedAirports.length) return;
+      if (selectedAirports.length === 0) {
+        emptyEl.style.display = "block";
+        return;
+      }
+      emptyEl.style.display = "none";
+
+      const dateStr = document.getElementById("date-input").value || new Date().toISOString().split("T")[0];
+      const timeWindow = document.getElementById("time-window").value || "morning";
 
       const results = selectedAirports.map(code => computeForecast(code, dateStr, timeWindow));
-
-      const cardsContainer = document.getElementById("airport-cards");
-      const emptyState = document.getElementById("forecast-empty");
-      const banner = document.getElementById("best-banner");
-
-      cardsContainer.innerHTML = "";
-      emptyState.style.display = "none";
-
-      // We no longer show a "Best option" banner per user feedback.
-      banner.style.display = "none";
-      banner.innerHTML = "";
 
       results.forEach(r => {
         const card = document.createElement("div");
@@ -906,116 +855,51 @@
 
         const m1 = document.createElement("div");
         m1.className = "metric-row";
-        m1.innerHTML = "Busy score: <span class='value'>" + r.score + "/100</span>";
+        m1.innerHTML = "Expected delay: <span class='value'>" + r.minDelay + "–" + r.maxDelay + " min</span>";
 
         const m2 = document.createElement("div");
         m2.className = "metric-row";
-        m2.innerHTML = "Expected delay: <span class='value'>" + r.minDelay + "–" + r.maxDelay + " min</span>";
+        m2.innerHTML = "On-time departures: <span class='value'>~" + r.onTimeRate + "%</span>";
 
         const m3 = document.createElement("div");
         m3.className = "metric-row";
-        m3.innerHTML = "On-time departures: <span class='value'>~" + r.onTimeRate + "%</span>";
+        m3.innerHTML = "TSA Standard: <span class='value'>" + r.tsaStdMin + "–" + r.tsaStdMax + " min</span>";
+
+        const m4 = document.createElement("div");
+        m4.className = "metric-row";
+        m4.innerHTML = "TSA PreCheck: <span class='value'>" + r.tsaPreMin + "–" + r.tsaPreMax + " min</span>";
 
         const riskUl = document.createElement("ul");
         riskUl.className = "risk-list";
-        r.riskFactors.forEach(txt => {
+        r.riskFactors.forEach(f => {
           const li = document.createElement("li");
-          li.textContent = txt;
+          li.textContent = f;
           riskUl.appendChild(li);
         });
 
         const spark = document.createElement("div");
         spark.className = "sparkline";
 
-        const m4 = document.createElement("div");
-        m4.className = "metric-row";
-        m4.innerHTML = "TSA Standard: <span class='value'>" + r.tsaStdMin + "–" + r.tsaStdMax + " min</span>";
-
-        const m5 = document.createElement("div");
-        m5.className = "metric-row";
-        m5.innerHTML = "TSA PreCheck: <span class='value'>" + r.tsaPreMin + "–" + r.tsaPreMax + " min</span>";
-
         card.appendChild(header);
         card.appendChild(m1);
         card.appendChild(m2);
         card.appendChild(m3);
         card.appendChild(m4);
-        card.appendChild(m5);
         card.appendChild(riskUl);
         card.appendChild(spark);
 
-        cardsContainer.appendChild(card);
+        cardsEl.appendChild(card);
       });
     }
 
-    function setTodayOnDateInputs() {
-      const today = new Date().toISOString().split("T")[0];
-      const forecastDateInput = document.getElementById("date-input");
-      if (forecastDateInput) {
-        forecastDateInput.value = today;
-      }
-    }
-
-    function setLiveNow() {
-      const now = new Date();
-      const todayStr = now.toISOString().split("T")[0];
-
-      // Keep forecast date in sync with "now" for live context
-      const forecastDateInput = document.getElementById("date-input");
-      if (forecastDateInput) {
-        forecastDateInput.value = todayStr;
-      }
-
-      // Snap time window to the current time of day
-      const timeWindowSelect = document.getElementById("time-window");
-      if (timeWindowSelect) {
-        const hour = now.getHours();
-        let windowVal = "evening";
-        if (hour >= 7 && hour < 11) windowVal = "morning";
-        else if (hour >= 11 && hour < 15) windowVal = "midday";
-        else if (hour >= 15 && hour < 19) windowVal = "afternoon";
-        else windowVal = "evening";
-        timeWindowSelect.value = windowVal;
-      }
-
-      // Update helper text with "as of" time stamp
-      const helper = document.getElementById("live-helper");
-      if (helper) {
-        const opts = { hour: 'numeric', minute: '2-digit' };
-        helper.textContent = "Smart mock data based on route, time of day, and airport behavior. As of " + now.toLocaleTimeString([], opts) + ".";
-      }
-    }
-
-function switchTab(tab) {
-      const forecastTab = document.getElementById("tab-forecast");
-      const liveTab = document.getElementById("tab-live");
-      const forecastSection = document.getElementById("forecast-section");
-      const liveSection = document.getElementById("live-section");
-
-      if (tab === "forecast") {
-        forecastTab.classList.add("active");
-        liveTab.classList.remove("active");
-        forecastSection.style.display = "block";
-        liveSection.classList.add("live-only");
-      } else {
-        setLiveNow();
-        liveTab.classList.add("active");
-        forecastTab.classList.remove("active");
-        forecastSection.style.display = "block"; // keep it visible above
-        liveSection.classList.remove("live-only");
-      }
-    }
-
+    // ---------- Live logic ----------
     function computeLiveRisk(flight, dateStr) {
-      // Very simple mock based on characters + time
       const upper = (flight || "AA123").toUpperCase().trim();
-      const letters = upper.replace(/[^A-Z]/g, "") || "AA";
       const numbers = parseInt(upper.replace(/[^0-9]/g, ""), 10) || 123;
       const seedKey = upper + "|" + dateStr;
       const rnd = pseudoRandomFromString(seedKey);
 
-      // base risk from flight number mag
-      let baseRisk = (numbers % 90) / 100; // 0–0.9
+      let baseRisk = (numbers % 90) / 100;
       baseRisk = (baseRisk + rnd * 0.5) / 1.5;
 
       let bucket;
@@ -1039,154 +923,192 @@ function switchTab(tab) {
         reasons.push("Turnaround time is comfortable for this departure.");
       }
 
-      const etaShift = Math.round((baseRisk * 60) / 5) * 5; // in 5-min increments
+      const etaShift = Math.round((baseRisk * 60) / 5) * 5;
       const cancelChance = Math.round(baseRisk * 18);
 
-      // Mock aircraft location based on seeded randomness
       const sampleAirports = ["ORD","PHX","DFW","LAX","SFO","DEN","ATL","JFK","SEA","BOS","MIA","IAH","CLT","LAS","MSP"];
       const idx1 = Math.floor(rnd * sampleAirports.length);
       const idx2 = (idx1 + 3) % sampleAirports.length;
       const currentLoc = sampleAirports[idx1];
       const nextDest = sampleAirports[idx2];
 
-      return { bucket, reasons, etaShift, cancelChance, currentLoc, nextDest };
+      const state = etaShift > 10 ? "air" : "ground";
+
+      return { bucket, reasons, etaShift, cancelChance, currentLoc, nextDest, state };
     }
 
-function renderLiveResult() {
-      const flight = document.getElementById("flight-number").value || "AA123";
-      const dateStr = new Date().toISOString().split("T")[0];
-      const result = computeLiveRisk(flight, dateStr);
+    function renderLiveResult(flight) {
+      const liveEmpty = document.getElementById("live-empty");
+      const liveResult = document.getElementById("live-result");
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
 
-      const container = document.getElementById("live-result");
-      const empty = document.getElementById("live-empty");
-      empty.style.display = "none";
-      container.innerHTML = "";
+      if (!flight || !flight.trim()) {
+        liveResult.innerHTML = "";
+        liveEmpty.textContent = "Enter a flight number to estimate its delay risk for today.";
+        liveEmpty.style.display = "block";
+        return;
+      }
 
-      const card = document.createElement("div");
-      card.className = "live-card";
+      const result = computeLiveRisk(flight, todayStr);
+      liveEmpty.style.display = "none";
 
-      const header = document.createElement("div");
-      header.className = "live-card-header";
-
-      const route = document.createElement("div");
-      route.className = "live-route";
-      route.textContent = flight.toUpperCase() + " • Your route";
-
-      const chip = document.createElement("div");
-      chip.className = "status-chip " + result.bucket;
-      let label, emoji;
+      const flightLabel = flight.toUpperCase().trim();
+      let riskLabel = "Moderate delay risk";
+      let chipClass = "med";
       if (result.bucket === "low") {
-        label = "Low delay risk";
-        emoji = "✅";
-      } else if (result.bucket === "med") {
-        label = "Moderate risk";
-        emoji = "⚠️";
-      } else {
-        setLiveNow();
-        label = "High delay risk";
-        emoji = "⏱";
-      }
-      chip.textContent = label + " " + emoji;
-
-      header.appendChild(route);
-      header.appendChild(chip);
-
-      const eta = document.createElement("div");
-      eta.className = "live-detail";
-      const shiftText = result.etaShift <= 0 ?
-        "on or very close to schedule" :
-        result.etaShift + " min later than scheduled";
-      eta.innerHTML = "Departure outlook: <span class='value'>" + shiftText + "</span>.";
-
-      const cancel = document.createElement("div");
-      cancel.className = "live-detail";
-      cancel.innerHTML = "Chance of significant disruption: <span class='value'>~" + result.cancelChance + "%</span> (mock estimate).";
-
-      // Aircraft location (mocked for prototype)
-      const acLoc = document.createElement("div");
-      acLoc.className = "live-detail";
-      // Decide whether aircraft is on the ground or in the air
-      let state = (result.etaShift > 10 ? "air" : "ground");
-      if (state === "ground") {
-        acLoc.innerHTML = "Aircraft status: <span class='value'>On the ground at " + result.currentLoc + ".</span>";
-      } else {
-        acLoc.innerHTML = "Aircraft status: <span class='value'>In the air, en route to " + result.nextDest + ".</span>";
+        riskLabel = "Low delay risk";
+        chipClass = "low";
+      } else if (result.bucket === "high") {
+        riskLabel = "High delay risk";
+        chipClass = "high";
       }
 
-      const reasonsList = document.createElement("div");
-      reasonsList.className = "live-detail";
-      reasonsList.style.marginTop = "6px";
-      reasonsList.textContent = "Why we think that:";
-      reasonsList.className = "live-detail";
-      reasonsList.style.marginTop = "6px";
-      reasonsList.textContent = "Why we think that:";
+      const etaText = result.etaShift <= 5
+        ? "On or very close to schedule."
+        : "Likely to depart ~" + result.etaShift + " min later than scheduled.";
 
-      const ul = document.createElement("ul");
-      ul.style.marginTop = "4px";
-      ul.style.paddingLeft = "18px";
-      ul.style.fontSize = "12px";
-      result.reasons.forEach(r => {
-        const li = document.createElement("li");
-        li.textContent = r;
-        ul.appendChild(li);
-      });
+      let statusText;
+      if (result.state === "ground") {
+        statusText = "On the ground at " + result.currentLoc + ".";
+      } else {
+        statusText = "In the air, en route to " + result.nextDest + ".";
+      }
 
-      const subActions = document.createElement("div");
-      subActions.className = "sub-actions";
-      const chip1 = document.createElement("div");
-      chip1.className = "sub-chip";
-      chip1.innerHTML = "🛰 <strong>Track inbound</strong>";
-      const chip2 = document.createElement("div");
-      chip2.className = "sub-chip";
-      chip2.innerHTML = "🔔 <strong>Alert me if risk rises</strong>";
+      const reasonsHtml = result.reasons.map(r => "<li>" + r + "</li>").join("");
 
-      subActions.appendChild(chip1);
-      subActions.appendChild(chip2);
-
-      card.appendChild(header);
-      card.appendChild(eta);
-      card.appendChild(cancel);
-      card.appendChild(acLoc);
-      card.appendChild(reasonsList);
-      card.appendChild(ul);
-      card.appendChild(subActions);
-
-      container.appendChild(card);
+      liveResult.innerHTML = `
+        <div class="live-card">
+          <div class="live-card-header">
+            <div class="live-route">${flightLabel}</div>
+            <div class="status-chip ${chipClass}">${riskLabel}</div>
+          </div>
+          <div class="live-detail">
+            Departure outlook: <span class="value">${etaText}</span>
+          </div>
+          <div class="live-detail">
+            Chance of significant disruption: <span class="value">~${result.cancelChance}%</span>
+          </div>
+          <div class="live-detail">
+            Aircraft status: <span class="value">${statusText}</span>
+          </div>
+          <div class="live-reasons-title">Why we think that:</div>
+          <ul class="live-reasons-list">
+            ${reasonsHtml}
+          </ul>
+        </div>
+      `;
     }
 
-    // Event listeners + init
+    function setTodayOnDateInputs() {
+      const today = new Date().toISOString().split("T")[0];
+      const dateInput = document.getElementById("date-input");
+      if (dateInput) {
+        dateInput.value = today;
+      }
+    }
+
+    function setLiveNow() {
+      const now = new Date();
+      const helper = document.getElementById("live-helper");
+      if (helper) {
+        const opts = { hour: "numeric", minute: "2-digit" };
+        helper.textContent =
+          "Smart mock data based on route, time of day, and airport behavior. As of " +
+          now.toLocaleTimeString([], opts) + ".";
+      }
+    }
+
+    // ---------- Modal handling ----------
+    let allAirportOptions = [];
+
+    function initAirportOptions() {
+      const selectEl = document.getElementById("airport-select");
+      allAirportOptions = Array.from(selectEl.querySelectorAll("option")).map(opt => ({
+        value: opt.value,
+        label: opt.textContent
+      }));
+    }
+
+    function openAirportModal() {
+      const backdrop = document.getElementById("modal-backdrop");
+      const searchInput = document.getElementById("airport-search");
+      backdrop.style.display = "flex";
+      if (searchInput) {
+        searchInput.value = "";
+        filterAirportOptions("");
+        searchInput.focus();
+      }
+    }
+
+    function closeAirportModal() {
+      const backdrop = document.getElementById("modal-backdrop");
+      backdrop.style.display = "none";
+    }
+
+    function filterAirportOptions(query) {
+      const select = document.getElementById("airport-select");
+      if (!select) return;
+      const q = (query || "").toLowerCase();
+      select.innerHTML = "";
+      allAirportOptions.forEach(opt => {
+        if (!q || opt.label.toLowerCase().includes(q) || opt.value.toLowerCase().includes(q)) {
+          const o = document.createElement("option");
+          o.value = opt.value;
+          o.textContent = opt.label;
+          select.appendChild(o);
+        }
+      });
+    }
+
+    // ---------- Event wiring ----------
     document.addEventListener("DOMContentLoaded", () => {
+      initAirportOptions();
       renderAirportChips();
       setTodayOnDateInputs();
-      switchTab("live");
+      setLiveNow();
 
-      document.getElementById("compare-btn").onclick = () => {
-        if (!selectedAirports.length) return;
-        renderForecast();
-      };
+      const compareBtn = document.getElementById("compare-btn");
+      compareBtn.addEventListener("click", () => {
+        renderForecastResults();
+      });
 
-      document.getElementById("tab-forecast").onclick = () => switchTab("forecast");
-      document.getElementById("tab-live").onclick = () => switchTab("live");
-
-      document.getElementById("modal-close").onclick = () => {
-        document.getElementById("modal-backdrop").style.display = "none";
-      };
-      document.getElementById("modal-cancel").onclick = () => {
-        document.getElementById("modal-backdrop").style.display = "none";
-      };
-      document.getElementById("modal-add").onclick = () => {
-        const select = document.getElementById("airport-select");
-        const code = select.value;
-        if (!selectedAirports.includes(code) && selectedAirports.length < 5) {
-          selectedAirports.push(code);
-          renderAirportChips();
+      const liveBtn = document.getElementById("live-btn");
+      const flightInput = document.getElementById("flight-number");
+      liveBtn.addEventListener("click", () => {
+        renderLiveResult(flightInput.value);
+        setLiveNow();
+      });
+      flightInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          renderLiveResult(flightInput.value);
+          setLiveNow();
         }
-        document.getElementById("modal-backdrop").style.display = "none";
-      };
+      });
 
-      document.getElementById("live-btn").onclick = () => {
-        renderLiveResult();
-      };
+      // Modal events
+      document.getElementById("modal-close").addEventListener("click", closeAirportModal);
+      document.getElementById("modal-cancel").addEventListener("click", closeAirportModal);
+      document.getElementById("modal-backdrop").addEventListener("click", (e) => {
+        if (e.target.id === "modal-backdrop") {
+          closeAirportModal();
+        }
+      });
+      document.getElementById("airport-search").addEventListener("input", (e) => {
+        filterAirportOptions(e.target.value);
+      });
+      document.getElementById("modal-add").addEventListener("click", () => {
+        const select = document.getElementById("airport-select");
+        const value = select.value;
+        if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
+          selectedAirports.push(value);
+          homeAirport = selectedAirports[0] || null;
+          renderAirportChips();
+          renderForecastResults();
+        }
+        closeAirportModal();
+      });
     });
   </script>
 </body>
