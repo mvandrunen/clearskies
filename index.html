@@ -708,7 +708,8 @@
       IAH: { name: "Houston (Bush)", baseBusyness: 68 }
     };
 
-    function computeForecast(airportCode, dateStr, timeWindow) {
+    // --- Mock forecast model (kept as base, then adjusted with real data) ---
+    function computeForecastMock(airportCode, dateStr, timeWindow) {
       const profile = airportProfiles[airportCode] || { name: airportCode, baseBusyness: 60 };
       const base = profile.baseBusyness;
       const dow = getDayOfWeek(dateStr);
@@ -765,37 +766,87 @@
       };
     }
 
+    // --- Adjust mock forecast with backend data (/api/airport-status, /api/tsa) ---
+    async function getForecastWithBackendAdjustments(airportCode, dateStr, timeWindow) {
+      const base = computeForecastMock(airportCode, dateStr, timeWindow);
+
+      // Only try to adjust using real-time data if this is today
+      const today = new Date().toISOString().split("T")[0];
+      if (dateStr !== today) return base;
+
+      try {
+        // 1) Airport delay / programs
+        const statusRes = await fetch(`/api/airport-status?airport=${encodeURIComponent(airportCode)}`);
+        if (statusRes.ok) {
+          const live = await statusRes.json(); 
+          // expected backend shape: { groundDelay: bool, groundStop: bool, avgDelayMinutes: number|null }
+
+          if (typeof live.avgDelayMinutes === "number") {
+            const bump = Math.round(live.avgDelayMinutes * 0.6);
+            base.minDelay += bump;
+            base.maxDelay += bump;
+          }
+
+          if (live.groundDelay) {
+            base.minDelay += 5;
+            base.maxDelay += 5;
+            base.riskFactors.unshift("Active arrival/departure delay program.");
+          }
+          if (live.groundStop) {
+            base.minDelay += 15;
+            base.maxDelay += 20;
+            base.riskFactors.unshift("Ground stop in effect.");
+            base.badgeClass = "bad";
+            base.riskLabel = "Expect meaningful delays";
+          }
+        }
+
+        // 2) TSA wait times override (if you want to plug real TSA numbers)
+        const tsaRes = await fetch(`/api/tsa?airport=${encodeURIComponent(airportCode)}`);
+        if (tsaRes.ok) {
+          const tsa = await tsaRes.json();
+          // expected backend shape: { standardMin, standardMax, preMin, preMax }
+          if (tsa.standardMin != null && tsa.standardMax != null) {
+            base.tsaStdMin = tsa.standardMin;
+            base.tsaStdMax = tsa.standardMax;
+          }
+          if (tsa.preMin != null && tsa.preMax != null) {
+            base.tsaPreMin = tsa.preMin;
+            base.tsaPreMax = tsa.preMax;
+          }
+        }
+      } catch (e) {
+        console.warn("Forecast backend adjustment failed; using mock only.", e);
+      }
+
+      return base;
+    }
+
     function renderAirportChips() {
       const container = document.getElementById("airport-chips");
       container.innerHTML = "";
 
       selectedAirports.forEach(code => {
         const chip = document.createElement("div");
-        if (code === homeAirport) {
-          chip.className = "chip home";
-        } else {
-          chip.className = "chip";
-        }
+        chip.className = (code === homeAirport) ? "chip home" : "chip";
 
         const label = document.createElement("span");
         label.textContent = code + (airportProfiles[code] ? " — " + airportProfiles[code].name : "");
         chip.appendChild(label);
 
-        if (selectedAirports.length > 0) {
-          const close = document.createElement("span");
-          close.className = "close";
-          close.textContent = "×";
-          close.addEventListener("click", () => {
-            const idx = selectedAirports.indexOf(code);
-            if (idx !== -1) {
-              selectedAirports.splice(idx, 1);
-              homeAirport = selectedAirports[0] || null;
-              renderAirportChips();
-              renderForecastResults();
-            }
-          });
-          chip.appendChild(close);
-        }
+        const close = document.createElement("span");
+        close.className = "close";
+        close.textContent = "×";
+        close.addEventListener("click", () => {
+          const idx = selectedAirports.indexOf(code);
+          if (idx !== -1) {
+            selectedAirports.splice(idx, 1);
+            homeAirport = selectedAirports[0] || null;
+            renderAirportChips();
+            renderForecastResults();
+          }
+        });
+        chip.appendChild(close);
 
         container.appendChild(chip);
       });
@@ -812,7 +863,7 @@
       container.appendChild(addChip);
     }
 
-    function renderForecastResults() {
+    async function renderForecastResults() {
       const emptyEl = document.getElementById("forecast-empty");
       const cardsEl = document.getElementById("airport-cards");
       cardsEl.innerHTML = "";
@@ -826,7 +877,9 @@
       const dateStr = document.getElementById("date-input").value || new Date().toISOString().split("T")[0];
       const timeWindow = document.getElementById("time-window").value || "morning";
 
-      const results = selectedAirports.map(code => computeForecast(code, dateStr, timeWindow));
+      const results = await Promise.all(
+        selectedAirports.map(code => getForecastWithBackendAdjustments(code, dateStr, timeWindow))
+      );
 
       results.forEach(r => {
         const card = document.createElement("div");
@@ -893,7 +946,9 @@
     }
 
     // ---------- Live logic ----------
-    function computeLiveRisk(flight, dateStr) {
+
+    // Mock live logic kept as fallback
+    function computeLiveRiskMock(flight, dateStr) {
       const upper = (flight || "AA123").toUpperCase().trim();
       const numbers = parseInt(upper.replace(/[^0-9]/g, ""), 10) || 123;
       const seedKey = upper + "|" + dateStr;
@@ -937,7 +992,7 @@
       return { bucket, reasons, etaShift, cancelChance, currentLoc, nextDest, state };
     }
 
-    function renderLiveResult(flight) {
+    async function renderLiveResult(flight) {
       const liveEmpty = document.getElementById("live-empty");
       const liveResult = document.getElementById("live-result");
       const now = new Date();
@@ -950,10 +1005,74 @@
         return;
       }
 
-      const result = computeLiveRisk(flight, todayStr);
       liveEmpty.style.display = "none";
+      const upper = flight.toUpperCase().trim();
 
-      const flightLabel = flight.toUpperCase().trim();
+      // Try backend first
+      try {
+        // naive airline/number split: first 2 letters = airline, rest = number
+        const airlineMatch = upper.match(/^[A-Z]+/);
+        const airline = airlineMatch ? airlineMatch[0] : "AA";
+        const number = upper.slice(airline.length).trim() || "123";
+
+        const flightRes = await fetch(`/api/flight?airline=${encodeURIComponent(airline)}&number=${encodeURIComponent(number)}`);
+        if (flightRes.ok) {
+          const flightData = await flightRes.json();
+          const f = flightData && flightData.data && flightData.data[0];
+          if (f) {
+            const dep = f.departure || {};
+            const arr = f.arrival || {};
+            const status = f.flight_status || "scheduled";
+
+            let bucket = "med";
+            let riskLabel = "Moderate delay risk";
+            if (status === "scheduled" || status === "active") { bucket = "low"; riskLabel = "Low delay risk"; }
+            if (status === "delayed") { bucket = "high"; riskLabel = "High delay risk"; }
+            if (status === "cancelled") { bucket = "high"; riskLabel = "High / cancellation risk"; }
+
+            const chipClass = bucket === "low" ? "low" : bucket === "high" ? "high" : "med";
+
+            const depEst = dep.estimated || dep.scheduled || "—";
+            const arrEst = arr.estimated || arr.scheduled || "—";
+
+            let statusText;
+            if (status === "active") {
+              statusText = `In the air, en route to ${arr.airport || arr.iata || ""}.`;
+            } else if (status === "landed") {
+              statusText = `On the ground at ${arr.airport || arr.iata || ""}.`;
+            } else if (status === "cancelled") {
+              statusText = `Flight appears to be cancelled.`;
+            } else {
+              statusText = `On the ground at ${dep.airport || dep.iata || ""}.`;
+            }
+
+            liveResult.innerHTML = `
+              <div class="live-card">
+                <div class="live-card-header">
+                  <div class="live-route">${upper}</div>
+                  <div class="status-chip ${chipClass}">${riskLabel}</div>
+                </div>
+                <div class="live-detail">
+                  Departure (local): <span class="value">${depEst}</span>
+                </div>
+                <div class="live-detail">
+                  Arrival (local): <span class="value">${arrEst}</span>
+                </div>
+                <div class="live-detail">
+                  Aircraft status: <span class="value">${statusText}</span>
+                </div>
+              </div>
+            `;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Flight backend lookup failed; falling back to mock.", e);
+      }
+
+      // Fallback: mock logic
+      const result = computeLiveRiskMock(flight, todayStr);
+      const flightLabel = upper;
       let riskLabel = "Moderate delay risk";
       let chipClass = "med";
       if (result.bucket === "low") {
@@ -1014,7 +1133,7 @@
       if (helper) {
         const opts = { hour: "numeric", minute: "2-digit" };
         helper.textContent =
-          "Smart mock data based on route, time of day, and airport behavior. As of " +
+          "Smart data blend based on route, time of day, and airport behavior. As of " +
           now.toLocaleTimeString([], opts) + ".";
       }
     }
