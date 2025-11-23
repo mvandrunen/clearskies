@@ -1,9 +1,9 @@
 // api/flight.js
-const fetch = (...args) =>
-  import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
+// Vercel's Node runtime (Node 18+) has a global fetch, so we don't need node-fetch.
 
 module.exports = async (req, res) => {
-  const { airline, number } = req.query;
+  const { airline, number } = req.query || {};
 
   if (!airline || !number) {
     return res
@@ -17,21 +17,42 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const flightIata = `${airline}${number}`; // e.g. "AA100"
-    const url = `http://api.aviationstack.com/v1/flights?access_key=${apiKey}&flight_iata=${encodeURIComponent(
-      flightIata
-    )}`;
+    const flightIata = `${airline}${number}`.toUpperCase().trim(); // e.g. "AA100"
+    const url = `http://api.aviationstack.com/v1/flights?access_key=${encodeURIComponent(
+      apiKey
+    )}&flight_iata=${encodeURIComponent(flightIata)}`;
 
     const r = await fetch(url);
-    if (!r.ok) {
-      throw new Error(`AviationStack HTTP ${r.status}`);
+
+    const text = await r.text(); // read raw for debugging
+    // Try to parse JSON; if it fails, surface the body so we can see what's wrong
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error('AviationStack non-JSON response:', text.slice(0, 500));
+      return res.status(502).json({
+        error: 'Upstream response was not JSON',
+        bodySnippet: text.slice(0, 500)
+      });
     }
 
-    const data = await r.json();
-    // data should have a `data` array; we just pass it through
+    // AviationStack often returns { success:false, error:{...} } when there is an API problem
+    if (data.error || data.success === false) {
+      console.error('AviationStack reported error:', data);
+      return res.status(502).json({
+        error: 'AviationStack API error',
+        upstream: data
+      });
+    }
+
+    // Success path: pass through the data array
     return res.status(200).json(data);
   } catch (err) {
     console.error('Flight API error:', err);
-    return res.status(500).json({ error: 'Flight lookup failed' });
+    return res.status(500).json({
+      error: 'Flight lookup failed',
+      details: err.message || String(err)
+    });
   }
 };
