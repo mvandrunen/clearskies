@@ -1310,6 +1310,21 @@
     // ---------- Event wiring ----------
     document.addEventListener("DOMContentLoaded", () => {
       initAirportOptions();
+            const airportSelectEl = document.getElementById("airport-select");
+      if (airportSelectEl) {
+        // Tap once on an airport row to add it and close the sheet.
+        airportSelectEl.addEventListener("change", () => {
+          const value = airportSelectEl.value;
+          if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
+            selectedAirports.push(value);
+            homeAirport = selectedAirports[0] || null;
+            renderAirportChips();
+            renderForecastResults();
+          }
+          closeAirportModal();
+        });
+      }
+
       renderAirportChips();
       setTodayOnDateInputs();
       setLiveNow();
