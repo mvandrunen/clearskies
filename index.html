@@ -191,7 +191,7 @@
     select,
     input[type="text"] {
       font-family: inherit;
-      font-size: 14px;
+      font-size: 16px;
       border-radius: 10px;
       border: 1px solid var(--border-subtle);
       padding: 7px 10px;
@@ -1272,20 +1272,40 @@
       backdrop.style.display = "none";
     }
 
-    function filterAirportOptions(query) {
-      const select = document.getElementById("airport-select");
-      if (!select) return;
-      const q = (query || "").toLowerCase();
-      select.innerHTML = "";
-      allAirportOptions.forEach(opt => {
-        if (!q || opt.label.toLowerCase().includes(q) || opt.value.toLowerCase().includes(q)) {
-          const o = document.createElement("option");
-          o.value = opt.value;
-          o.textContent = opt.label;
-          select.appendChild(o);
-        }
-      });
+   function filterAirportOptions(query) {
+  const select = document.getElementById("airport-select");
+  if (!select) return;
+
+  const q = (query || "").trim().toLowerCase();
+  select.innerHTML = "";
+
+  allAirportOptions.forEach(opt => {
+    const label = opt.label.toLowerCase();
+    const code = opt.value.toLowerCase();
+
+    // use indexOf instead of includes for broader Safari compatibility
+    const matches =
+      !q ||
+      label.indexOf(q) !== -1 ||
+      code.indexOf(q) !== -1;
+
+    if (matches) {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      select.appendChild(o);
     }
+  });
+
+  // if nothing matched, show a disabled “no results” row so it’s clear what happened
+  if (!select.options.length) {
+    const o = document.createElement("option");
+    o.disabled = true;
+    o.textContent = "No matches — try a different code or city.";
+    select.appendChild(o);
+  }
+}
+
 
     // ---------- Event wiring ----------
     document.addEventListener("DOMContentLoaded", () => {
