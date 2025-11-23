@@ -807,53 +807,64 @@
       };
     }
 
-    async function getForecastWithBackendAdjustments(airportCode, dateStr, timeWindow) {
-      const base = computeForecastMock(airportCode, dateStr, timeWindow);
+async function getForecastWithBackendAdjustments(airportCode, dateStr, timeWindow) {
+  const base = computeForecastMock(airportCode, dateStr, timeWindow);
+  base.usedFaa = false; // ← track if FAA actually influenced this result
 
-      const today = new Date().toISOString().split("T")[0];
-      if (dateStr !== today) return base;
+  const today = new Date().toISOString().split("T")[0];
+  if (dateStr !== today) return base;
 
-      try {
-        const statusRes = await fetch(`/api/airport-status?airport=${encodeURIComponent(airportCode)}`);
-        if (statusRes.ok) {
-          const live = await statusRes.json();
-          if (typeof live.avgDelayMinutes === "number") {
-            const bump = Math.round(live.avgDelayMinutes * 0.6);
-            base.minDelay += bump;
-            base.maxDelay += bump;
-          }
-          if (live.groundDelay) {
-            base.minDelay += 5;
-            base.maxDelay += 5;
-            base.riskFactors.unshift("Active arrival/departure delay program.");
-          }
-          if (live.groundStop) {
-            base.minDelay += 15;
-            base.maxDelay += 20;
-            base.riskFactors.unshift("Ground stop in effect.");
-            base.badgeClass = "bad";
-            base.riskLabel = "Expect meaningful delays";
-          }
-        }
+  try {
+    const statusRes = await fetch(`/api/airport-status?airport=${encodeURIComponent(airportCode)}`);
+    if (statusRes.ok) {
+      const live = await statusRes.json();
 
-        const tsaRes = await fetch(`/api/tsa?airport=${encodeURIComponent(airportCode)}`);
-        if (tsaRes.ok) {
-          const tsa = await tsaRes.json();
-          if (tsa.standardMin != null && tsa.standardMax != null) {
-            base.tsaStdMin = tsa.standardMin;
-            base.tsaStdMax = tsa.standardMax;
-          }
-          if (tsa.preMin != null && tsa.preMax != null) {
-            base.tsaPreMin = tsa.preMin;
-            base.tsaPreMax = tsa.preMax;
-          }
-        }
-      } catch (e) {
-        console.warn("Forecast backend adjustment failed; using mock only.", e);
+      let faaTouched = false;
+
+      if (typeof live.avgDelayMinutes === "number") {
+        const bump = Math.round(live.avgDelayMinutes * 0.6);
+        base.minDelay += bump;
+        base.maxDelay += bump;
+        faaTouched = true;
+      }
+      if (live.groundDelay) {
+        base.minDelay += 5;
+        base.maxDelay += 5;
+        base.riskFactors.unshift("Active arrival/departure delay program.");
+        faaTouched = true;
+      }
+      if (live.groundStop) {
+        base.minDelay += 15;
+        base.maxDelay += 20;
+        base.riskFactors.unshift("Ground stop in effect.");
+        base.badgeClass = "bad";
+        base.riskLabel = "Expect meaningful delays";
+        faaTouched = true;
       }
 
-      return base;
+      if (faaTouched) {
+        base.usedFaa = true;
+      }
     }
+
+    const tsaRes = await fetch(`/api/tsa?airport=${encodeURIComponent(airportCode)}`);
+    if (tsaRes.ok) {
+      const tsa = await tsaRes.json();
+      if (tsa.standardMin != null && tsa.standardMax != null) {
+        base.tsaStdMin = tsa.standardMin;
+        base.tsaStdMax = tsa.standardMax;
+      }
+      if (tsa.preMin != null && tsa.preMax != null) {
+        base.tsaPreMin = tsa.preMin;
+        base.tsaPreMax = tsa.preMax;
+      }
+    }
+  } catch (e) {
+    console.warn("Forecast backend adjustment failed; using mock only.", e);
+  }
+
+  return base;
+}
 
     function renderAirportChips() {
       const container = document.getElementById("airport-chips");
