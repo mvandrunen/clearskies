@@ -984,6 +984,28 @@ async function getForecastWithBackendAdjustments(airportCode, dateStr, timeWindo
         card.appendChild(m4);
         card.appendChild(riskUl);
         card.appendChild(spark);
+                const spark = document.createElement("div");
+        spark.className = "sparkline";
+
+        card.appendChild(header);
+        card.appendChild(m1);
+        card.appendChild(m2);
+        card.appendChild(m3);
+        card.appendChild(m4);
+        card.appendChild(riskUl);
+        card.appendChild(spark);
+
+        // NEW: tiny FAA line when live data influenced the forecast
+        if (r.usedFaa) {
+          const faaLine = document.createElement("div");
+          faaLine.className = "metric-row";
+          faaLine.style.fontSize = "11px";
+          faaLine.style.color = "#9ca3af";
+          faaLine.textContent = "Includes live FAA delay program data.";
+          card.appendChild(faaLine);
+        }
+
+        cardsEl.appendChild(card);
 
         cardsEl.appendChild(card);
       });
