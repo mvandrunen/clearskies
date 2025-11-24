@@ -759,6 +759,26 @@ function loadAirportSelectionFromStorage() {
     homeAirport = selectedAirports[0] || null;
   }
 }
+let lastFlightNumber = "";
+
+function loadLastFlightFromStorage() {
+  try {
+    const v = localStorage.getItem("cs_lastFlight");
+    if (v) {
+      lastFlightNumber = v;
+    }
+  } catch (e) {
+    console.warn("loadLastFlightFromStorage failed", e);
+  }
+}
+
+function persistLastFlight(flight) {
+  try {
+    localStorage.setItem("cs_lastFlight", flight || "");
+  } catch (e) {
+    console.warn("persistLastFlight failed", e);
+  }
+}
     
     const airportProfiles = {
       SAN: { name: "San Diego Intl", baseBusyness: 55 },
@@ -1429,14 +1449,29 @@ async function renderForecastResults() {
 
       const liveBtn = document.getElementById("live-btn");
       const flightInput = document.getElementById("flight-number");
+      
+      loadLastFlightFromStorage();
+      if (lastFlightNumber && flightInput) {
+        flightInput.value = lastFlightNumber;
+      }
+      
       liveBtn.addEventListener("click", () => {
-        renderLiveResult(flightInput.value);
+        const flight = (flightInput.value || "").trim().toUpperCase();
+        if (!flight) return;
+      
+        persistLastFlight(flight);   // NEW
+        renderLiveResult(flight);
         setLiveNow();
       });
+      
       flightInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          renderLiveResult(flightInput.value);
+          const flight = (flightInput.value || "").trim().toUpperCase();
+          if (!flight) return;
+      
+          persistLastFlight(flight);   // NEW
+          renderLiveResult(flight);
           setLiveNow();
         }
       });
