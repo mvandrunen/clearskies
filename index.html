@@ -908,109 +908,127 @@ async function getForecastWithBackendAdjustments(airportCode, dateStr, timeWindo
       container.appendChild(addChip);
     }
 
-    async function renderForecastResults() {
-      const emptyEl = document.getElementById("forecast-empty");
-      const cardsEl = document.getElementById("airport-cards");
-      cardsEl.innerHTML = "";
+async function renderForecastResults() {
+  const emptyEl = document.getElementById("forecast-empty");
+  const cardsEl = document.getElementById("airport-cards");
+  cardsEl.innerHTML = "";
 
-      if (selectedAirports.length === 0) {
-        emptyEl.style.display = "block";
-        return;
-      }
-      emptyEl.style.display = "none";
+  if (selectedAirports.length === 0) {
+    emptyEl.style.display = "block";
+    return;
+  }
+  emptyEl.style.display = "none";
 
-      const dateStr = document.getElementById("date-input").value || new Date().toISOString().split("T")[0];
-      const timeWindow = document.getElementById("time-window").value || "morning";
+  const dateStr =
+    document.getElementById("date-input").value ||
+    new Date().toISOString().split("T")[0];
+  const timeWindow =
+    document.getElementById("time-window").value || "morning";
 
-      const results = await Promise.all(
-        selectedAirports.map(code => getForecastWithBackendAdjustments(code, dateStr, timeWindow))
-      );
+  // Get results for all selected airports (with FAA/TSA adjustments)
+  const results = await Promise.all(
+    selectedAirports.map((code) =>
+      getForecastWithBackendAdjustments(code, dateStr, timeWindow)
+    )
+  );
 
-      results.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "airport-card";
+  results.forEach((r) => {
+    const card = document.createElement("div");
+    card.className = "airport-card";
 
-        const header = document.createElement("div");
-        header.className = "airport-card-header";
+    // Header
+    const header = document.createElement("div");
+    header.className = "airport-card-header";
 
-        const left = document.createElement("div");
-        const codeEl = document.createElement("div");
-        codeEl.className = "airport-code";
-        codeEl.textContent = r.code;
-        const nameEl = document.createElement("div");
-        nameEl.style.fontSize = "12px";
-        nameEl.style.color = "var(--text-subtle)";
-        nameEl.textContent = r.name;
-        left.appendChild(codeEl);
-        left.appendChild(nameEl);
+    const left = document.createElement("div");
+    const codeEl = document.createElement("div");
+    codeEl.className = "airport-code";
+    codeEl.textContent = r.code;
 
-        const badge = document.createElement("div");
-        badge.className = "badge " + r.badgeClass;
-        badge.textContent = r.riskLabel;
+    const nameEl = document.createElement("div");
+    nameEl.style.fontSize = "12px";
+    nameEl.style.color = "var(--text-subtle)";
+    nameEl.textContent = r.name;
 
-        header.appendChild(left);
-        header.appendChild(badge);
+    left.appendChild(codeEl);
+    left.appendChild(nameEl);
 
-        const m1 = document.createElement("div");
-        m1.className = "metric-row";
-        m1.innerHTML = "Expected delay: <span class='value'>" + r.minDelay + "–" + r.maxDelay + " min</span>";
+    const badge = document.createElement("div");
+    badge.className = "badge " + r.badgeClass;
+    badge.textContent = r.riskLabel;
 
-        const m2 = document.createElement("div");
-        m2.className = "metric-row";
-        m2.innerHTML = "On-time departures: <span class='value'>~" + r.onTimeRate + "%</span>";
+    header.appendChild(left);
+    header.appendChild(badge);
 
-        const m3 = document.createElement("div");
-        m3.className = "metric-row";
-        m3.innerHTML = "TSA Standard: <span class='value'>" + r.tsaStdMin + "–" + r.tsaStdMax + " min</span>";
+    // Metrics
+    const m1 = document.createElement("div");
+    m1.className = "metric-row";
+    m1.innerHTML =
+      "Expected delay: <span class='value'>" +
+      r.minDelay +
+      "–" +
+      r.maxDelay +
+      " min</span>";
 
-        const m4 = document.createElement("div");
-        m4.className = "metric-row";
-        m4.innerHTML = "TSA PreCheck: <span class='value'>" + r.tsaPreMin + "–" + r.tsaPreMax + " min</span>";
+    const m2 = document.createElement("div");
+    m2.className = "metric-row";
+    m2.innerHTML =
+      "On-time departures: <span class='value'>~" +
+      r.onTimeRate +
+      "%</span>";
 
-        const riskUl = document.createElement("ul");
-        riskUl.className = "risk-list";
-        r.riskFactors.forEach(f => {
-          const li = document.createElement("li");
-          li.textContent = f;
-          riskUl.appendChild(li);
-        });
+    const m3 = document.createElement("div");
+    m3.className = "metric-row";
+    m3.innerHTML =
+      "TSA Standard: <span class='value'>" +
+      r.tsaStdMin +
+      "–" +
+      r.tsaStdMax +
+      " min</span>";
 
-        const spark = document.createElement("div");
-        spark.className = "sparkline";
+    const m4 = document.createElement("div");
+    m4.className = "metric-row";
+    m4.innerHTML =
+      "TSA PreCheck: <span class='value'>" +
+      r.tsaPreMin +
+      "–" +
+      r.tsaPreMax +
+      " min</span>";
 
-        card.appendChild(header);
-        card.appendChild(m1);
-        card.appendChild(m2);
-        card.appendChild(m3);
-        card.appendChild(m4);
-        card.appendChild(riskUl);
-        card.appendChild(spark);
-                const spark = document.createElement("div");
-        spark.className = "sparkline";
+    // Risk factors
+    const riskUl = document.createElement("ul");
+    riskUl.className = "risk-list";
+    r.riskFactors.forEach((f) => {
+      const li = document.createElement("li");
+      li.textContent = f;
+      riskUl.appendChild(li);
+    });
 
-        card.appendChild(header);
-        card.appendChild(m1);
-        card.appendChild(m2);
-        card.appendChild(m3);
-        card.appendChild(m4);
-        card.appendChild(riskUl);
-        card.appendChild(spark);
+    // Sparkline (just once!)
+    const spark = document.createElement("div");
+    spark.className = "sparkline";
 
-        // NEW: tiny FAA line when live data influenced the forecast
-        if (r.usedFaa) {
-          const faaLine = document.createElement("div");
-          faaLine.className = "metric-row";
-          faaLine.style.fontSize = "11px";
-          faaLine.style.color = "#9ca3af";
-          faaLine.textContent = "Includes live FAA delay program data.";
-          card.appendChild(faaLine);
-        }
+    card.appendChild(header);
+    card.appendChild(m1);
+    card.appendChild(m2);
+    card.appendChild(m3);
+    card.appendChild(m4);
+    card.appendChild(riskUl);
+    card.appendChild(spark);
 
-        cardsEl.appendChild(card);
-
-        cardsEl.appendChild(card);
-      });
+    // Tiny FAA line when live FAA data influenced the result
+    if (r.usedFaa) {
+      const faaLine = document.createElement("div");
+      faaLine.className = "metric-row";
+      faaLine.style.fontSize = "11px";
+      faaLine.style.color = "#9ca3af";
+      faaLine.textContent = "Includes live FAA delay program data.";
+      card.appendChild(faaLine);
     }
+
+    cardsEl.appendChild(card);
+  });
+}
 
     // ---------- Live logic ----------
 
