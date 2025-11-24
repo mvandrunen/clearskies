@@ -1401,6 +1401,7 @@ async function renderForecastResults() {
     // ---------- Event wiring ----------
     document.addEventListener("DOMContentLoaded", () => {
       initAirportOptions();
+      loadAirportSelectionFromStorage();
             const airportSelectEl = document.getElementById("airport-select");
       if (airportSelectEl) {
         // Tap once on an airport row to add it and close the sheet.
@@ -1409,6 +1410,7 @@ async function renderForecastResults() {
           if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
             selectedAirports.push(value);
             homeAirport = selectedAirports[0] || null;
+            persistAirportSelection(); 
             renderAirportChips();
             renderForecastResults();
           }
@@ -1455,6 +1457,7 @@ async function renderForecastResults() {
         if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
           selectedAirports.push(value);
           homeAirport = selectedAirports[0] || null;
+          persistAirportSelection(); 
           renderAirportChips();
           renderForecastResults();
         }
