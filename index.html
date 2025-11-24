@@ -1013,6 +1013,21 @@ async function renderForecastResults() {
   const timeWindow =
     document.getElementById("time-window").value || "morning";
 
+    // NEW: analytics for forecast updates
+  trackEvent("forecast_update", {
+    airports: selectedAirports.slice(),
+    date: dateStr,
+    timeWindow
+  });
+
+  const results = await Promise.all(
+    selectedAirports.map((code) =>
+      getForecastWithBackendAdjustments(code, dateStr, timeWindow)
+    )
+  );
+  // ...
+}
+
   // Get results for all selected airports (with FAA/TSA adjustments)
   const results = await Promise.all(
     selectedAirports.map((code) =>
@@ -1490,7 +1505,9 @@ async function renderForecastResults() {
         const flight = (flightInput.value || "").trim().toUpperCase();
         if (!flight) return;
       
-        persistLastFlight(flight);   // NEW
+        persistLastFlight(flight);
+        trackEvent("live_lookup", { flight, source: "button" });
+        
         renderLiveResult(flight);
         setLiveNow();
       });
@@ -1501,7 +1518,9 @@ async function renderForecastResults() {
           const flight = (flightInput.value || "").trim().toUpperCase();
           if (!flight) return;
       
-          persistLastFlight(flight);   // NEW
+          persistLastFlight(flight);
+          trackEvent("live_lookup", { flight, source: "enter" });
+          
           renderLiveResult(flight);
           setLiveNow();
         }
