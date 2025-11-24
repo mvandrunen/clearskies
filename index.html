@@ -788,6 +788,26 @@ function persistLastFlight(flight) {
     console.warn("persistLastFlight failed", e);
   }
 }
+    // ===== Anonymous analytics helper =====
+function trackEvent(eventName, payload) {
+  try {
+    const body = {
+      event: eventName,
+      payload: payload || {},
+      ts: new Date().toISOString()
+    };
+
+    fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    }).catch(() => {
+      // fire-and-forget
+    });
+  } catch (e) {
+    console.warn("trackEvent failed", e);
+  }
+}
     
     const airportProfiles = {
       SAN: { name: "San Diego Intl", baseBusyness: 55 },
@@ -1429,6 +1449,8 @@ async function renderForecastResults() {
 
     // ---------- Event wiring ----------
     document.addEventListener("DOMContentLoaded", () => {
+      trackEvent("app_open", { ua: navigator.userAgent });
+      
       initAirportOptions();
       loadAirportSelectionFromStorage();
             const airportSelectEl = document.getElementById("airport-select");
