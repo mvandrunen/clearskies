@@ -535,6 +535,15 @@
       text-align: right;
     }
   </style>
+    <!-- PWA / installability -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0f67ff" />
+
+  <!-- iOS install support -->
+  <link rel="apple-touch-icon" href="/icons/clearskies-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ClearSkies" />
 </head>
 <body>
   <div class="app-shell">
@@ -1499,6 +1508,14 @@ async function renderForecastResults() {
         closeAirportModal();
       });
     });
+    // ------- PWA: service worker registration -------
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .catch((err) => console.warn("SW registration failed", err));
+  });
+}
   </script>
 </body>
 </html>
