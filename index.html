@@ -721,6 +721,45 @@
     let selectedAirports = ["SAN"];
     let homeAirport = selectedAirports[0] || null;
 
+function persistAirportSelection() {
+  try {
+    localStorage.setItem("cs_selectedAirports", JSON.stringify(selectedAirports));
+    localStorage.setItem("cs_homeAirport", homeAirport || "");
+  } catch (e) {
+    console.warn("persistAirportSelection failed", e);
+  }
+}
+
+function loadAirportSelectionFromStorage() {
+  try {
+    const stored = localStorage.getItem("cs_selectedAirports");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // only keep airports we actually know about, max 5
+        const filtered = parsed
+          .filter((code) => airportProfiles[code])
+          .slice(0, 5);
+
+        if (filtered.length > 0) {
+          selectedAirports = filtered;
+        }
+      }
+    }
+
+    const storedHome = localStorage.getItem("cs_homeAirport");
+    let candidate = storedHome || selectedAirports[0];
+    if (!airportProfiles[candidate]) {
+      candidate = selectedAirports[0];
+    }
+    homeAirport = candidate || null;
+  } catch (e) {
+    console.warn("loadAirportSelectionFromStorage failed, using defaults", e);
+    selectedAirports = ["SAN"];
+    homeAirport = selectedAirports[0] || null;
+  }
+}
+    
     const airportProfiles = {
       SAN: { name: "San Diego Intl", baseBusyness: 55 },
       LAX: { name: "Los Angeles Intl", baseBusyness: 75 },
