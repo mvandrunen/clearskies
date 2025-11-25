@@ -1065,6 +1065,8 @@ async function getForecastWithBackendAdjustments(airportCode, dateStr, timeWindo
 async function renderForecastResults() {
   const emptyEl = document.getElementById("forecast-empty");
   const cardsEl = document.getElementById("airport-cards");
+  if (!emptyEl || !cardsEl) return;
+
   cardsEl.innerHTML = "";
 
   if (selectedAirports.length === 0) {
@@ -1073,25 +1075,79 @@ async function renderForecastResults() {
   }
   emptyEl.style.display = "none";
 
-  const dateStr =
-    document.getElementById("date-input").value ||
-    new Date().toISOString().split("T")[0];
-  const timeWindow =
-    document.getElementById("time-window").value || "07";
+  // --- ensure dateStr and timeWindow are defined ---
+  const dateInputEl = document.getElementById("date-input");
+  const timeSelectEl = document.getElementById("time-window");
 
-    // NEW: analytics for forecast updates
+  const dateStr =
+    (dateInputEl && dateInputEl.value) ||
+    new Date().toISOString().split("T")[0];
+
+  const timeWindow =
+    (timeSelectEl && timeSelectEl.value) || "morning";
+
+  // analytics
   trackEvent("forecast_update", {
     airports: selectedAirports.slice(),
     date: dateStr,
     timeWindow
   });
 
+  // --- get modeled results for each airport ---
   const results = await Promise.all(
     selectedAirports.map((code) =>
       getForecastWithBackendAdjustments(code, dateStr, timeWindow)
     )
   );
-  // ...
+
+  results.forEach((r) => {
+    const profile = airportProfiles[r.code] || { name: r.code };
+
+    const card = document.createElement("div");
+    card.className = "forecast-card";
+
+    const header = document.createElement("div");
+    header.className = "forecast-card-header";
+    header.textContent = profile.name;
+    card.appendChild(header);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "forecast-card-subtitle";
+    subtitle.textContent = `${r.windowLabel} · ${r.dateLabel}`;
+    card.appendChild(subtitle);
+
+    const metrics = document.createElement("div");
+    metrics.className = "metrics-row";
+
+    const level = document.createElement("div");
+    level.className = "metric";
+    level.innerHTML = `<div class="metric-label">Delay risk</div><div class="metric-value">${r.riskLabel}</div>`;
+    metrics.appendChild(level);
+
+    const avgDelay = document.createElement("div");
+    avgDelay.className = "metric";
+    avgDelay.innerHTML = `<div class="metric-label">Typical delay</div><div class="metric-value">${r.delayRange}</div>`;
+    metrics.appendChild(avgDelay);
+
+    const onTime = document.createElement("div");
+    onTime.className = "metric";
+    onTime.innerHTML = `<div class="metric-label">On-time odds</div><div class="metric-value">${r.onTimePct}</div>`;
+    metrics.appendChild(onTime);
+
+    card.appendChild(metrics);
+
+    // Tiny FAA line when live FAA data influenced the result
+    if (r.usedFaa) {
+      const faaLine = document.createElement("div");
+      faaLine.className = "metric-row";
+      faaLine.style.fontSize = "11px";
+      faaLine.style.color = "#9ca3af";
+      faaLine.textContent = "Includes live FAA delay program data.";
+      card.appendChild(faaLine);
+    }
+
+    cardsEl.appendChild(card);
+  });
 }
 
   // Get results for all selected airports (with FAA/TSA adjustments)
