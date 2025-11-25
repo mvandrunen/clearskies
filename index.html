@@ -1703,20 +1703,76 @@ if ("serviceWorker" in navigator) {
       .catch((err) => console.warn("SW registration failed", err));
   });
 }
-    // ------- Ensure chips render on initial load -------
+
+    // ------- Add-airport modal helpers -------
+function openAirportModal() {
+  const backdrop = document.getElementById("modal-backdrop");
+  if (!backdrop) return;
+
+  // Make sure the modal is visible and clickable
+  backdrop.style.display = "flex";
+  backdrop.classList.add("visible");
+}
+
+function closeAirportModal() {
+  const backdrop = document.getElementById("modal-backdrop");
+  if (!backdrop) return;
+
+  backdrop.style.display = "none";
+  backdrop.classList.remove("visible");
+}
+// ------- Ensure chips & events are wired on initial load -------
 document.addEventListener("DOMContentLoaded", () => {
-  // Load any saved airports (falls back to ["SAN"] if nothing valid)
+  // 1) Load saved airports (falls back to ["SAN"])
   if (typeof loadAirportSelectionFromStorage === "function") {
     loadAirportSelectionFromStorage();
   }
 
-  // Render the airport chips row
+  // 2) Render the airport chips row
   if (typeof renderAirportChips === "function") {
     renderAirportChips();
   }
 
-  console.log("[ClearSkies] Initial chips rendered", selectedAirports);
+  // 3) Wire "Update forecast" button
+  const compareBtn = document.getElementById("compare-btn");
+  if (compareBtn && typeof renderForecastResults === "function") {
+    compareBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      renderForecastResults();
+    });
+  }
+
+  // 4) Wire modal close buttons / backdrop
+  const modalBackdrop = document.getElementById("modal-backdrop");
+  const modalClose    = document.getElementById("modal-close");
+  const modalCancel   = document.getElementById("modal-cancel");
+
+  if (modalClose) {
+    modalClose.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeAirportModal();
+    });
+  }
+
+  if (modalCancel) {
+    modalCancel.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeAirportModal();
+    });
+  }
+
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener("click", (e) => {
+      // Only close when you tap the backdrop itself, not the sheet content
+      if (e.target && e.target.id === "modal-backdrop") {
+        closeAirportModal();
+      }
+    });
+  }
+
+  console.log("[ClearSkies] Initial wiring complete. Airports:", selectedAirports);
 });
+
   </script>
 </body>
 </html>
