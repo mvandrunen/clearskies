@@ -1462,93 +1462,91 @@ async function renderForecastResults() {
 }
 
 
-    // ---------- Event wiring ----------
-    document.addEventListener("DOMContentLoaded", () => {
-      trackEvent("app_open", { ua: navigator.userAgent });
-      
-      initAirportOptions();
-      loadAirportSelectionFromStorage();
-            const airportSelectEl = document.getElementById("airport-select");
-      if (airportSelectEl) {
-        // Tap once on an airport row to add it and close the sheet.
-        airportSelectEl.addEventListener("change", () => {
-          const value = airportSelectEl.value;
-          if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
-            selectedAirports.push(value);
-            homeAirport = selectedAirports[0] || null;
-            persistAirportSelection(); 
-            renderAirportChips();
-            renderForecastResults();
-          }
-          closeAirportModal();
-        });
-      }
+document.addEventListener("DOMContentLoaded", () => {
+  // Analytics: app opened
+  trackEvent("app_open", { ua: navigator.userAgent });
 
-      renderAirportChips();
-      setTodayOnDateInputs();
-      setLiveNow();
+  // 1. Initial data / options
+  initAirportOptions();
+  loadAirportSelectionFromStorage();
+  renderAirportChips();
+  setTodayOnDateInputs();
+  setLiveNow();
 
-      const compareBtn = document.getElementById("compare-btn");
-      compareBtn.addEventListener("click", () => {
+  // 2. Airport select (bottom sheet)
+  const airportSelectEl = document.getElementById("airport-select");
+  if (airportSelectEl) {
+    airportSelectEl.addEventListener("change", () => {
+      const value = airportSelectEl.value;
+      if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
+        selectedAirports.push(value);
+        homeAirport = selectedAirports[0] || null;
+        persistAirportSelection();
+        renderAirportChips();
         renderForecastResults();
-      });
-
-      const liveBtn = document.getElementById("live-btn");
-      const flightInput = document.getElementById("flight-number");
-      
-      loadLastFlightFromStorage();
-      if (lastFlightNumber && flightInput) {
-        flightInput.value = lastFlightNumber;
       }
-      
-      liveBtn.addEventListener("click", () => {
+      closeAirportModal();
+    });
+  }
+
+  // 3. Compare / Update forecast button
+  const compareBtn = document.getElementById("compare-btn");
+  if (compareBtn) {
+    compareBtn.addEventListener("click", () => {
+      renderForecastResults();
+    });
+  }
+
+  // 4. Live flight lookup
+  const liveBtn = document.getElementById("live-btn");
+  const flightInput = document.getElementById("flight-number");
+
+  loadLastFlightFromStorage();
+  if (lastFlightNumber && flightInput) {
+    flightInput.value = lastFlightNumber;
+  }
+
+  if (liveBtn && flightInput) {
+    liveBtn.addEventListener("click", () => {
+      const flight = (flightInput.value || "").trim().toUpperCase();
+      if (!flight) return;
+
+      persistLastFlight(flight);
+      trackEvent("live_lookup", { flight, source: "button" });
+      renderLiveResult(flight);
+      setLiveNow();
+    });
+
+    flightInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
         const flight = (flightInput.value || "").trim().toUpperCase();
         if (!flight) return;
-      
+
         persistLastFlight(flight);
-        trackEvent("live_lookup", { flight, source: "button" });
-        
+        trackEvent("live_lookup", { flight, source: "enter" });
         renderLiveResult(flight);
         setLiveNow();
-      });
-      
-      flightInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          const flight = (flightInput.value || "").trim().toUpperCase();
-          if (!flight) return;
-      
-          persistLastFlight(flight);
-          trackEvent("live_lookup", { flight, source: "enter" });
-          
-          renderLiveResult(flight);
-          setLiveNow();
-        }
-      });
-
-      document.getElementById("modal-close").addEventListener("click", closeAirportModal);
-      document.getElementById("modal-cancel").addEventListener("click", closeAirportModal);
-      document.getElementById("modal-backdrop").addEventListener("click", (e) => {
-        if (e.target.id === "modal-backdrop") {
-          closeAirportModal();
-        }
-      });
-      document.getElementById("airport-search").addEventListener("input", (e) => {
-        filterAirportOptions(e.target.value);
-      });
-      document.getElementById("modal-add").addEventListener("click", () => {
-        const select = document.getElementById("airport-select");
-        const value = select.value;
-        if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
-          selectedAirports.push(value);
-          homeAirport = selectedAirports[0] || null;
-          persistAirportSelection(); 
-          renderAirportChips();
-          renderForecastResults();
-        }
-        closeAirportModal();
-      });
+      }
     });
+  }
+
+  // 5. Modal close wiring
+  const modalClose = document.getElementById("modal-close");
+  const modalCancel = document.getElementById("modal-cancel");
+  const modalBackdrop = document.getElementById("modal-backdrop");
+
+  if (modalClose) modalClose.addEventListener("click", closeAirportModal);
+  if (modalCancel) modalCancel.addEventListener("click", closeAirportModal);
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target.id === "modal-backdrop") {
+        closeAirportModal();
+      }
+    });
+  }
+});
+
     // ------- PWA: service worker registration -------
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
