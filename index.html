@@ -980,45 +980,46 @@ async function getForecastWithBackendAdjustments(airportCode, dateStr, timeWindo
   return base;
 }
 
-      function renderAirportChips() {
-        const container = document.getElementById("airport-chips");
-        if (!container) return;
-      
-        container.innerHTML = "";
-      
-        // Existing selected airports
-        selectedAirports.forEach((code, idx) => {
-          const profile = airportProfiles[code];
-          const chip = document.createElement("button");
-          chip.className = "chip";
-          chip.textContent = profile ? profile.name : code;
-      
-          // Home airport marker
-          if (idx === 0) {
-            const homeTag = document.createElement("span");
-            homeTag.className = "chip-tag";
-            homeTag.textContent = "Home";
-            chip.appendChild(homeTag);
-          }
-      
-          chip.addEventListener("click", () => {
-            // Optional: later allow reordering/removal
-          });
-      
-          container.appendChild(chip);
-        });
-      
-        // “+ Add airport” chip
-        if (selectedAirports.length < 5) {
-          const addChip = document.createElement("button");
-          addChip.className = "chip chip-add";
-          addChip.textContent = "+ Add airport";
-          addChip.addEventListener("click", () => {
-            openAirportModal();
-          });
-          container.appendChild(addChip);
-        }
-      }
+  function renderAirportChips() {
+  const container = document.getElementById("airport-chips");
+  if (!container) {
+    console.warn("[ClearSkies] airport-chips container not found");
+    return;
+  }
+
+  container.innerHTML = "";
+
+  // Render existing airports
+  selectedAirports.forEach((code, idx) => {
+    const profile = airportProfiles[code];
+    const chip = document.createElement("button");
+    chip.className = "chip";
+    chip.textContent = profile ? profile.name : code;
+
+    // Mark first as “Home”
+    if (idx === 0) {
+      const tag = document.createElement("span");
+      tag.className = "chip-tag";
+      tag.textContent = "Home";
+      chip.appendChild(tag);
+    }
+
+    container.appendChild(chip);
+  });
+
+  // Always show "+ Add airport" while under the limit
+  if (selectedAirports.length < 5) {
+    const addChip = document.createElement("button");
+    addChip.className = "chip chip-add";
+    addChip.textContent = "+ Add airport";
+    addChip.addEventListener("click", () => {
+      openAirportModal();
+    });
+    container.appendChild(addChip);
+  }
+
+  console.log("[ClearSkies] renderAirportChips →", selectedAirports);
+}
 
 async function renderForecastResults() {
   const emptyEl = document.getElementById("forecast-empty");
