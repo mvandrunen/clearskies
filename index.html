@@ -417,15 +417,20 @@
       margin-top: 4px;
     }
 
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.3);
-      display: none;
-      align-items: flex-end;
-      justify-content: center;
-      z-index: 30;
-    }
+   #modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 22, 36, 0.45);
+  opacity: 0;
+  pointer-events: none; /* fix for iOS freezing */
+  transition: opacity 0.2s ease-out;
+  z-index: 40;
+}
+
+#modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto; /* only active when visible */
+}
 
     .modal {
       width: 100%;
