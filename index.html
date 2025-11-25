@@ -754,46 +754,37 @@
       return 0;
     }
 
-    // ---------- Forecast state + data ----------
-    let selectedAirports = ["SAN"];
-    let homeAirport = selectedAirports[0] || null;
+// --------- Forecast state + data ----------
+let selectedAirports = ["SAN"];
+let homeAirport = selectedAirports[0] || null;
 
-function persistAirportSelection() {
+const AIRPORT_STORAGE_KEY = "cs_airports";
+
+function saveAirportSelectionToStorage() {
   try {
-    localStorage.setItem("cs_selectedAirports", JSON.stringify(selectedAirports));
-    localStorage.setItem("cs_homeAirport", homeAirport || "");
+    window.localStorage.setItem(
+      AIRPORT_STORAGE_KEY,
+      JSON.stringify(selectedAirports)
+    );
   } catch (e) {
-    console.warn("persistAirportSelection failed", e);
+    console.warn("Failed to save airports", e);
   }
 }
 
 function loadAirportSelectionFromStorage() {
   try {
-    const stored = localStorage.getItem("cs_selectedAirports");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // only keep airports we actually know about, max 5
-        const filtered = parsed
-          .filter((code) => airportProfiles[code])
-          .slice(0, 5);
+    const raw = window.localStorage.getItem(AIRPORT_STORAGE_KEY);
+    if (!raw) return; // nothing saved, keep defaults
 
-        if (filtered.length > 0) {
-          selectedAirports = filtered;
-        }
-      }
-    }
+    const parsed = JSON.parse(raw);
 
-    const storedHome = localStorage.getItem("cs_homeAirport");
-    let candidate = storedHome || selectedAirports[0];
-    if (!airportProfiles[candidate]) {
-      candidate = selectedAirports[0];
+    // ✅ Only override if there is a *non-empty* array
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      selectedAirports = parsed;
+      homeAirport = selectedAirports[0] || null;
     }
-    homeAirport = candidate || null;
   } catch (e) {
-    console.warn("loadAirportSelectionFromStorage failed, using defaults", e);
-    selectedAirports = ["SAN"];
-    homeAirport = selectedAirports[0] || null;
+    console.warn("Failed to load saved airports", e);
   }
 }
 let lastFlightNumber = "";
