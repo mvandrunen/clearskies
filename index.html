@@ -1470,13 +1470,44 @@ async function renderForecastResults() {
     // ---------- Modal handling ----------
     let allAirportOptions = [];
 
-    function initAirportOptions() {
-      const selectEl = document.getElementById("airport-select");
-      allAirportOptions = Array.from(selectEl.querySelectorAll("option")).map(opt => ({
-        value: opt.value,
-        label: opt.textContent
-      }));
-    }
+function initAirportOptions() {
+  const selectEl = document.getElementById("airport-select");
+  const searchEl = document.getElementById("airport-search");
+  if (!selectEl) return;
+
+  const entries = Object.entries(airportProfiles).sort((a, b) =>
+    a[1].name.localeCompare(b[1].name)
+  );
+
+  function renderOptions(filter) {
+    const q = (filter || "").trim().toLowerCase();
+    selectEl.innerHTML = "";
+
+    entries.forEach(([code, profile]) => {
+      const label = `${code} — ${profile.name}`;
+      if (
+        !q ||
+        code.toLowerCase().includes(q) ||
+        profile.name.toLowerCase().includes(q)
+      ) {
+        const opt = document.createElement("option");
+        opt.value = code;
+        opt.textContent = label;
+        selectEl.appendChild(opt);
+      }
+    });
+  }
+
+  // Initial full list
+  renderOptions("");
+
+  if (searchEl) {
+    searchEl.addEventListener("input", () => {
+      renderOptions(searchEl.value);
+    });
+  }
+}
+
 
     let isAirportModalOpen = false;
 
