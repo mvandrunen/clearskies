@@ -1022,46 +1022,45 @@ async function getForecastWithBackendAdjustments(airportCode, dateStr, timeWindo
   return base;
 }
 
-    function renderAirportChips() {
-      const container = document.getElementById("airport-chips");
-      container.innerHTML = "";
-
-      selectedAirports.forEach(code => {
-        const chip = document.createElement("div");
-        chip.className = (code === homeAirport) ? "chip home" : "chip";
-
-        const label = document.createElement("span");
-        label.textContent = code + (airportProfiles[code] ? " — " + airportProfiles[code].name : "");
-        chip.appendChild(label);
-
-        const close = document.createElement("span");
-        close.className = "close";
-        close.textContent = "×";
-        close.addEventListener("click", () => {
-          const idx = selectedAirports.indexOf(code);
-          if (idx !== -1) {
-            selectedAirports.splice(idx, 1);
-            homeAirport = selectedAirports[0] || null;
-            renderAirportChips();
-            renderForecastResults();
+      function renderAirportChips() {
+        const container = document.getElementById("airport-chips");
+        if (!container) return;
+      
+        container.innerHTML = "";
+      
+        // Existing selected airports
+        selectedAirports.forEach((code, idx) => {
+          const profile = airportProfiles[code];
+          const chip = document.createElement("button");
+          chip.className = "chip";
+          chip.textContent = profile ? profile.name : code;
+      
+          // Home airport marker
+          if (idx === 0) {
+            const homeTag = document.createElement("span");
+            homeTag.className = "chip-tag";
+            homeTag.textContent = "Home";
+            chip.appendChild(homeTag);
           }
+      
+          chip.addEventListener("click", () => {
+            // Optional: later allow reordering/removal
+          });
+      
+          container.appendChild(chip);
         });
-        chip.appendChild(close);
-
-        container.appendChild(chip);
-      });
-
-      const addChip = document.createElement("div");
-      addChip.className = "chip chip-add";
-      addChip.id = "add-airport-chip";
-      addChip.textContent = selectedAirports.length >= 5 ? "+ Add airport (max reached)" : "+ Add airport";
-      if (selectedAirports.length >= 5) {
-        addChip.classList.add("disabled");
-      } else {
-        addChip.addEventListener("click", () => openAirportModal());
+      
+        // “+ Add airport” chip
+        if (selectedAirports.length < 5) {
+          const addChip = document.createElement("button");
+          addChip.className = "chip chip-add";
+          addChip.textContent = "+ Add airport";
+          addChip.addEventListener("click", () => {
+            openAirportModal();
+          });
+          container.appendChild(addChip);
+        }
       }
-      container.appendChild(addChip);
-    }
 
 async function renderForecastResults() {
   const emptyEl = document.getElementById("forecast-empty");
