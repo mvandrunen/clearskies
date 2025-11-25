@@ -755,10 +755,11 @@
     }
 
 // --------- Forecast state + data ----------
+const AIRPORT_STORAGE_KEY = "cs_airports";
+
+// Default to SAN so the UI always has a home airport if nothing is saved
 let selectedAirports = ["SAN"];
 let homeAirport = selectedAirports[0] || null;
-
-const AIRPORT_STORAGE_KEY = "cs_airports";
 
 function saveAirportSelectionToStorage() {
   try {
@@ -766,65 +767,31 @@ function saveAirportSelectionToStorage() {
       AIRPORT_STORAGE_KEY,
       JSON.stringify(selectedAirports)
     );
-  } catch (e) {
-    console.warn("Failed to save airports", e);
+  } catch (err) {
+    console.warn("[ClearSkies] Failed to save airports", err);
   }
 }
 
 function loadAirportSelectionFromStorage() {
   try {
     const raw = window.localStorage.getItem(AIRPORT_STORAGE_KEY);
-    if (!raw) return; // nothing saved, keep defaults
+    if (!raw) {
+      console.log("[ClearSkies] No saved airports, using default SAN");
+      return;
+    }
 
     const parsed = JSON.parse(raw);
 
-    // ✅ Only override if there is a *non-empty* array
+    // Only override if we have a non-empty array
     if (Array.isArray(parsed) && parsed.length > 0) {
       selectedAirports = parsed;
       homeAirport = selectedAirports[0] || null;
+      console.log("[ClearSkies] Loaded airports from storage:", selectedAirports);
+    } else {
+      console.log("[ClearSkies] Saved airports empty/invalid, keeping default SAN");
     }
-  } catch (e) {
-    console.warn("Failed to load saved airports", e);
-  }
-}
-let lastFlightNumber = "";
-
-function loadLastFlightFromStorage() {
-  try {
-    const v = localStorage.getItem("cs_lastFlight");
-    if (v) {
-      lastFlightNumber = v;
-    }
-  } catch (e) {
-    console.warn("loadLastFlightFromStorage failed", e);
-  }
-}
-
-function persistLastFlight(flight) {
-  try {
-    localStorage.setItem("cs_lastFlight", flight || "");
-  } catch (e) {
-    console.warn("persistLastFlight failed", e);
-  }
-}
-    // ===== Anonymous analytics helper =====
-function trackEvent(eventName, payload) {
-  try {
-    const body = {
-      event: eventName,
-      payload: payload || {},
-      ts: new Date().toISOString()
-    };
-
-    fetch("/api/analytics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    }).catch(() => {
-      // fire-and-forget
-    });
-  } catch (e) {
-    console.warn("trackEvent failed", e);
+  } catch (err) {
+    console.warn("[ClearSkies] Failed to load airports, keeping default SAN", err);
   }
 }
     
