@@ -1694,8 +1694,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-}
-    // ------- PWA: service worker registration -------
+// ------- PWA: service worker registration -------
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
@@ -1704,12 +1703,11 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-    // ------- Add-airport modal helpers -------
+// ------- Add-airport modal helpers -------
 function openAirportModal() {
   const backdrop = document.getElementById("modal-backdrop");
   if (!backdrop) return;
 
-  // Make sure the modal is visible and clickable
   backdrop.style.display = "flex";
   backdrop.classList.add("visible");
 }
@@ -1721,57 +1719,91 @@ function closeAirportModal() {
   backdrop.style.display = "none";
   backdrop.classList.remove("visible");
 }
-// ------- Ensure chips & events are wired on initial load -------
+
+// ------- Main wiring on DOM ready -------
 document.addEventListener("DOMContentLoaded", () => {
-  // 1) Load saved airports (falls back to ["SAN"])
-  if (typeof loadAirportSelectionFromStorage === "function") {
-    loadAirportSelectionFromStorage();
+  // Analytics: app opened
+  trackEvent?.("app_open", { ua: navigator.userAgent });
+
+  // 1. Initial data / options
+  loadAirportSelectionFromStorage();
+  renderAirportChips();
+  setTodayOnDateInputs();
+  setLiveNow();
+
+  // 2. Airport select (bottom sheet)
+  const airportSelectEl = document.getElementById("airport-select");
+  if (airportSelectEl) {
+    airportSelectEl.addEventListener("change", () => {
+      const value = airportSelectEl.value;
+      if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
+        selectedAirports.push(value);
+        homeAirport = selectedAirports[0] || null;
+        saveAirportSelectionToStorage();
+        renderAirportChips();
+        renderForecastResults();
+      }
+      closeAirportModal();
+    });
   }
 
-  // 2) Render the airport chips row
-  if (typeof renderAirportChips === "function") {
-    renderAirportChips();
-  }
-
-  // 3) Wire "Update forecast" button
+  // 3. Compare / Update forecast button
   const compareBtn = document.getElementById("compare-btn");
-  if (compareBtn && typeof renderForecastResults === "function") {
+  if (compareBtn) {
     compareBtn.addEventListener("click", (e) => {
       e.preventDefault();
       renderForecastResults();
     });
   }
 
-  // 4) Wire modal close buttons / backdrop
+  // 4. Live flight lookup
+  const liveBtn = document.getElementById("live-btn");
+  const flightInput = document.getElementById("flight-number");
+
+  loadLastFlightFromStorage();
+  if (lastFlightNumber && flightInput) {
+    flightInput.value = lastFlightNumber;
+  }
+
+  if (liveBtn && flightInput) {
+    const handleLookup = (source) => {
+      const flight = (flightInput.value || "").trim().toUpperCase();
+      if (!flight) return;
+
+      persistLastFlight(flight);
+      trackEvent("live_lookup", { flight, source });
+      renderLiveResult(flight);
+      setLiveNow();
+    };
+
+    liveBtn.addEventListener("click", () => handleLookup("button"));
+
+    flightInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleLookup("enter");
+      }
+    });
+  }
+
+  // 5. Modal close wiring
+  const modalClose = document.getElementById("modal-close");
+  const modalCancel = document.getElementById("modal-cancel");
   const modalBackdrop = document.getElementById("modal-backdrop");
-  const modalClose    = document.getElementById("modal-close");
-  const modalCancel   = document.getElementById("modal-cancel");
 
-  if (modalClose) {
-    modalClose.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeAirportModal();
-    });
-  }
-
-  if (modalCancel) {
-    modalCancel.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeAirportModal();
-    });
-  }
-
+  if (modalClose) modalClose.addEventListener("click", closeAirportModal);
+  if (modalCancel) modalCancel.addEventListener("click", closeAirportModal);
   if (modalBackdrop) {
     modalBackdrop.addEventListener("click", (e) => {
-      // Only close when you tap the backdrop itself, not the sheet content
-      if (e.target && e.target.id === "modal-backdrop") {
+      if (e.target.id === "modal-backdrop") {
         closeAirportModal();
       }
     });
   }
 
-  console.log("[ClearSkies] Initial wiring complete. Airports:", selectedAirports);
+  console.log("[ClearSkies] Wiring complete. Airports:", selectedAirports);
 });
+
 
   </script>
 </body>
