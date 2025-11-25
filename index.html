@@ -1703,6 +1703,20 @@ if ("serviceWorker" in navigator) {
       .catch((err) => console.warn("SW registration failed", err));
   });
 }
+    // ------- Ensure chips render on initial load -------
+document.addEventListener("DOMContentLoaded", () => {
+  // Load any saved airports (falls back to ["SAN"] if nothing valid)
+  if (typeof loadAirportSelectionFromStorage === "function") {
+    loadAirportSelectionFromStorage();
+  }
+
+  // Render the airport chips row
+  if (typeof renderAirportChips === "function") {
+    renderAirportChips();
+  }
+
+  console.log("[ClearSkies] Initial chips rendered", selectedAirports);
+});
   </script>
 </body>
 </html>
