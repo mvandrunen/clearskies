@@ -1095,7 +1095,7 @@ async function renderForecastResults() {
 }
 
   // Get results for all selected airports (with FAA/TSA adjustments)
-  const results = await Promise.all(
+  const results = Promise.all(
     selectedAirports.map((code) =>
       getForecastWithBackendAdjustments(code, dateStr, timeWindow)
     )
