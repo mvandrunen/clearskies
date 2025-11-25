@@ -479,6 +479,29 @@
       margin-bottom: 6px;
     }
 
+        #airport-search {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle, #d0d4dd);
+      font-size: 16px;
+      -webkit-appearance: none;
+    }
+    
+    #airport-search:focus {
+      outline: none;
+      border-color: #0f67ff;
+      box-shadow: 0 0 0 2px rgba(15, 103, 255, 0.16);
+    }
+    
+    #airport-select {
+      width: 100%;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 15px;
+    }
+
+
     .modal-actions {
       margin-top: 12px;
       display: flex;
@@ -670,35 +693,21 @@
             class="airport-search-input"
             placeholder="Search airports…"
           />
-          <select id="airport-select" class="airport-select" size="8">
-            <option value="SAN">SAN — San Diego Intl</option>
-            <option value="LAX">LAX — Los Angeles Intl</option>
-            <option value="SFO">SFO — San Francisco Intl</option>
-            <option value="JFK">JFK — New York (JFK)</option>
-            <option value="LGA">LGA — New York (LaGuardia)</option>
-            <option value="EWR">EWR — Newark Liberty</option>
-            <option value="ORD">ORD — Chicago O'Hare</option>
-            <option value="MDW">MDW — Chicago Midway</option>
-            <option value="DFW">DFW — Dallas/Fort Worth</option>
-            <option value="IAH">IAH — Houston (Bush)</option>
-            <option value="DEN">DEN — Denver Intl</option>
-            <option value="ATL">ATL — Atlanta (ATL)</option>
-            <option value="BOS">BOS — Boston Logan</option>
-            <option value="PHL">PHL — Philadelphia Intl</option>
-            <option value="PHX">PHX — Phoenix Sky Harbor</option>
-            <option value="SEA">SEA — Seattle-Tacoma</option>
-            <option value="SLC">SLC — Salt Lake City</option>
-            <option value="MCO">MCO — Orlando Intl</option>
-            <option value="MIA">MIA — Miami Intl</option>
-            <option value="FLL">FLL — Fort Lauderdale-Hollywood</option>
-            <option value="LAS">LAS — Las Vegas (LAS)</option>
-            <option value="CLT">CLT — Charlotte Douglas</option>
-            <option value="DTW">DTW — Detroit Metro</option>
-            <option value="MSP">MSP — Minneapolis–St. Paul</option>
-            <option value="BWI">BWI — Baltimore/Washington</option>
-            <option value="DCA">DCA — Washington Reagan</option>
-            <option value="IAD">IAD — Washington Dulles</option>
-          </select>
+         <div class="field">
+  <label for="airport-search">Search</label>
+  <input
+    id="airport-search"
+    type="search"
+    placeholder="Search airports by code or city"
+    autocomplete="off"
+  />
+</div>
+
+<div class="field" style="margin-top: 10px;">
+  <label for="airport-select">Or pick from the list</label>
+  <select id="airport-select" size="8"></select>
+</div>
+
         </div>
         <div class="modal-actions">
           <button class="btn-secondary" id="modal-cancel">Cancel</button>
