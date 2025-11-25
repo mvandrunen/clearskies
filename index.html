@@ -1411,21 +1411,67 @@ async function renderForecastResults() {
       }));
     }
 
-    function openAirportModal() {
-      const backdrop = document.getElementById("modal-backdrop");
-      const searchInput = document.getElementById("airport-search");
-      backdrop.style.display = "flex";
-      if (searchInput) {
-        searchInput.value = "";
-        filterAirportOptions("");
-        searchInput.focus();
-      }
-    }
+    let isAirportModalOpen = false;
 
-    function closeAirportModal() {
-      const backdrop = document.getElementById("modal-backdrop");
+function openAirportModal() {
+  const modal = document.getElementById("airport-modal");
+  const backdrop = document.getElementById("modal-backdrop");
+  const input = document.getElementById("airport-search");
+
+  if (!modal || !backdrop) return;
+
+  isAirportModalOpen = true;
+
+  // Show elements
+  backdrop.style.display = "block";
+  modal.style.display = "block";
+
+  // Allow taps again
+  backdrop.style.pointerEvents = "auto";
+
+  // Trigger CSS transition safely
+  requestAnimationFrame(() => {
+    modal.classList.add("open");
+    backdrop.classList.add("open");
+  });
+
+  // Put cursor in search field
+  if (input) {
+    input.value = "";
+    input.blur();          // reset weird prior state
+    setTimeout(() => input.focus(), 50);
+  }
+}
+
+function closeAirportModal() {
+  const modal = document.getElementById("airport-modal");
+  const backdrop = document.getElementById("modal-backdrop");
+  const input = document.getElementById("airport-search");
+
+  if (!modal || !backdrop) return;
+
+  isAirportModalOpen = false;
+
+  // Stop the keyboard from doing strange things on iOS
+  if (input) {
+    input.blur();
+  }
+
+  // Start CSS transition
+  modal.classList.remove("open");
+  backdrop.classList.remove("open");
+
+  // Immediately stop capturing taps
+  backdrop.style.pointerEvents = "none";
+
+  // After transition, hide from layout
+  setTimeout(() => {
+    if (!isAirportModalOpen) {
+      modal.style.display = "none";
       backdrop.style.display = "none";
     }
+  }, 220); // match your CSS transition duration
+}
 
    function filterAirportOptions(query) {
   const select = document.getElementById("airport-select");
