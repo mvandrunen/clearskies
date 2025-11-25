@@ -1150,13 +1150,6 @@ async function renderForecastResults() {
   });
 }
 
-  // Get results for all selected airports (with FAA/TSA adjustments)
-  const results = Promise.all(
-    selectedAirports.map((code) =>
-      getForecastWithBackendAdjustments(code, dateStr, timeWindow)
-    )
-  );
-
   results.forEach((r) => {
     const card = document.createElement("div");
     card.className = "airport-card";
