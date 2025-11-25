@@ -1045,7 +1045,7 @@ async function renderForecastResults() {
     document.getElementById("date-input").value ||
     new Date().toISOString().split("T")[0];
   const timeWindow =
-    document.getElementById("time-window").value || "morning";
+    document.getElementById("time-window").value || "07";
 
     // NEW: analytics for forecast updates
   trackEvent("forecast_update", {
