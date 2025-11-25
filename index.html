@@ -1609,7 +1609,6 @@ function closeAirportModal() {
     select.appendChild(o);
   }
 }
-
 // ------- PWA: service worker registration -------
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -1638,7 +1637,7 @@ function closeAirportModal() {
 
 // ------- Main wiring on DOM ready -------
 document.addEventListener("DOMContentLoaded", () => {
-  // Analytics: app opened
+  // Analytics: app opened (safe optional call)
   trackEvent?.("app_open", { ua: navigator.userAgent });
 
   // 1. Initial data / options
@@ -1687,7 +1686,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!flight) return;
 
       persistLastFlight(flight);
-      trackEvent("live_lookup", { flight, source });
+      trackEvent?.("live_lookup", { flight, source });
       renderLiveResult(flight);
       setLiveNow();
     };
@@ -1703,12 +1702,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 5. Modal close wiring
-  const modalClose = document.getElementById("modal-close");
-  const modalCancel = document.getElementById("modal-cancel");
+  const modalClose   = document.getElementById("modal-close");
+  const modalCancel  = document.getElementById("modal-cancel");
   const modalBackdrop = document.getElementById("modal-backdrop");
 
-  if (modalClose) modalClose.addEventListener("click", closeAirportModal);
+  if (modalClose)  modalClose.addEventListener("click", closeAirportModal);
   if (modalCancel) modalCancel.addEventListener("click", closeAirportModal);
+
   if (modalBackdrop) {
     modalBackdrop.addEventListener("click", (e) => {
       if (e.target.id === "modal-backdrop") {
@@ -1719,7 +1719,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("[ClearSkies] Wiring complete. Airports:", selectedAirports);
 });
-
 
   </script>
 </body>
