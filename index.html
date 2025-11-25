@@ -1662,7 +1662,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (value && !selectedAirports.includes(value) && selectedAirports.length < 5) {
         selectedAirports.push(value);
         homeAirport = selectedAirports[0] || null;
-        persistAirportSelection();
+        saveAirportSelectionToStorage();
         renderAirportChips();
         renderForecastResults();
       }
