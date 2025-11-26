@@ -1271,63 +1271,97 @@
         const airline = airlineMatch ? airlineMatch[0] : "AA";
         const number = upper.slice(airline.length).trim() || "123";
 
-        const flightRes = await fetch(`/api/flight?airline=${encodeURIComponent(airline)}&number=${encodeURIComponent(number)}`);
-        if (flightRes.ok) {
-          const flightData = await flightRes.json();
-          const f = flightData && flightData.data && flightData.data[0];
-          if (f) {
-            const dep = f.departure || {};
-            const arr = f.arrival || {};
-            const status = (f.flight_status || "scheduled").toLowerCase();
+       const flightRes = await fetch(
+  `/api/flight?airline=${encodeURIComponent(airline)}&number=${encodeURIComponent(number)}`
+);
 
-            const depSched = dep.scheduled || null;
-            const depEst = dep.estimated || depSched;
-            const arrSched = arr.scheduled || null;
-            const arrEst = arr.estimated || arrSched;
+if (flightRes.ok) {
+  const live = await flightRes.json();
 
-            const depDelay = computeDelayMinutes(depSched, depEst);
-            const arrDelay = computeDelayMinutes(arrSched, arrEst);
+  // If the backend couldn’t find anything useful, fall through to the mock
+  if (!live || (!live.depScheduled && !live.arrScheduled)) {
+    // do nothing here – we’ll hit the mock below
+  } else {
+    const status = (live.status || "scheduled").toLowerCase();
 
-            const depLabel = formatLocalTime(depEst, dep.timezone, dep.iata || "");
-            const arrLabel = formatLocalTime(arrEst, arr.timezone, arr.iata || "");
+    // --- schedule / estimate + delays ---
+    const depSched = live.depScheduled || null;
+    const depEst   = live.depEstimated || depSched;
+    const arrSched = live.arrScheduled || null;
+    const arrEst   = live.arrEstimated || arrSched;
 
-            const risk = classifyRiskFromReal(status, depDelay, arrDelay);
-            const chipClass = risk.bucket === "low" ? "low" : risk.bucket === "high" ? "high" : "med";
-            const insight = buildInsightFromReal(status, depDelay, arrDelay);
+    const depDelay = computeDelayMinutes(depSched, depEst);
+    const arrDelay = computeDelayMinutes(arrSched, arrEst);
 
-            let statusText;
-            if (status === "active") {
-              statusText = "In the air now, headed toward " + (arr.airport || arr.iata || "destination") + ".";
-            } else if (status === "landed") {
-              statusText = "This flight has already landed at " + (arr.airport || arr.iata || "its destination") + ".";
-            } else if (status === "cancelled") {
-              statusText = "Marked as cancelled in the airline’s system.";
-            } else {
-              statusText = "On the ground at " + (dep.airport || dep.iata || "departure airport") + ", waiting for departure.";
-            }
+    // --- labels shown in UI (local time) ---
+    const depLabel = formatLocalTime(depEst, live.departureTz, live.departureAirport);
+    const arrLabel = formatLocalTime(arrEst, live.arrivalTz,   live.arrivalAirport);
 
-            liveResult.innerHTML = `
-              <div class="live-card">
-                <div class="live-card-header">
-                  <div class="live-route">${upper}</div>
-                  <div class="status-chip ${chipClass}">${risk.label}</div>
-                </div>
-                <div class="live-insight">${insight}</div>
-                <div class="live-detail">
-                  Departs: <span class="value">${depLabel}</span>
-                </div>
-                <div class="live-detail">
-                  Arrives: <span class="value">${arrLabel}</span>
-                </div>
-                <div class="live-detail">
-                  Aircraft status: <span class="value">${statusText}</span>
-                </div>
-              </div>
-            `;
-            if (liveLoading) liveLoading.style.display = "none";
-            return;
-          }
-        }
+    const risk = classifyRiskFromReal(status, depDelay, arrDelay);
+    const chipClass =
+      risk.bucket === "low"  ? "low" :
+      risk.bucket === "high" ? "high" : "med";
+
+    const insight = buildInsightFromReal(status, depDelay, arrDelay);
+
+    // --- status line ---
+    let statusText;
+    if (status === "active") {
+      statusText = `In the air now, headed toward ${live.arrivalAirport || "destination"}.`;
+    } else if (status === "landed") {
+      statusText = `This flight has already landed at ${live.arrivalAirport || "its destination"}.`;
+    } else if (status === "cancelled") {
+      statusText = "Marked as cancelled in the airline’s system.";
+    } else {
+      statusText = `On the ground at ${live.departureAirport || "departure airport"}, waiting for departure.`;
+    }
+
+    // --- optional gate / terminal line if you expose these fields ---
+    let gateLine = "";
+    const gateBits = [];
+    if (live.terminalOrigin || live.gateOrigin) {
+      gateBits.push(
+        `Departs T${live.terminalOrigin || "?"} G${live.gateOrigin || "?"}`
+      );
+    }
+    if (live.terminalDest || live.gateDest) {
+      gateBits.push(
+        `Arrives T${live.terminalDest || "?"} G${live.gateDest || "?"}`
+      );
+    }
+    if (gateBits.length) {
+      gateLine = `
+        <div class="live-detail">
+          Gate info: <span class="value">${gateBits.join(" · ")}</span>
+        </div>`;
+    }
+
+    // --- render card ---
+    liveResult.innerHTML = `
+      <div class="live-card">
+        <div class="live-card-header">
+          <div class="live-route">${upper}</div>
+          <div class="status-chip ${chipClass}">${risk.label}</div>
+        </div>
+        <div class="live-insight">${insight}</div>
+        <div class="live-detail">
+          Departs: <span class="value">${depLabel}</span>
+        </div>
+        <div class="live-detail">
+          Arrives: <span class="value">${arrLabel}</span>
+        </div>
+        <div class="live-detail">
+          Aircraft status: <span class="value">${statusText}</span>
+        </div>
+        ${gateLine}
+      </div>
+    `;
+
+    if (liveLoading) liveLoading.style.display = "none";
+    return;   // important: don’t fall through to the mock
+  }
+}
+
       } catch (e) {
         console.warn("Flight backend lookup failed; falling back to mock.", e);
       }
