@@ -1,5 +1,12 @@
 // api/flight.js
 
+export default async function handler(req, res) {
+  try {
+    const { airline = "AA", number = "100" } = req.query;
+    if (!airline || !number) {
+      return res.status(400).json({ error: "Missing airline or number" });
+    }
+
 // ---------- Normalization helpers ----------
 
 function normalizeFromFlightAware(json, airline, number) {
@@ -247,5 +254,14 @@ export default async function handler(req, res) {
   }
 }
 
+return res.status(200).json(merged); // whatever you already had
+  } catch (err) {
+    console.error("❌ /api/flight error:", err);
+    return res
+      .status(500)
+      .json({ error: "Internal error in /api/flight", details: String(err) });
+  }
+}
+    
 console.log("🔵 FlightAware FULL JSON:", JSON.stringify(json).substr(0, 5000));
 console.log("🟡 AviationStack FULL JSON:", JSON.stringify(json).substr(0, 5000));
