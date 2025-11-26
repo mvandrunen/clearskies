@@ -1,73 +1,85 @@
 // api/airport-status.js
-// Uses FAA public JSON feed, then maps into a simple shape for the UI.
-
-const FAA_BASE_URL = "https://services.faa.gov/airport/status";
-
-module.exports = async (req, res) => {
-  const { airport } = req.query;
-
-  if (!airport) {
-    return res.status(400).json({ error: "airport code required, e.g. ?airport=SAN" });
-  }
-
-  const code = String(airport).toUpperCase().trim();
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
   try {
-    const url = `${FAA_BASE_URL}/${encodeURIComponent(code)}?format=application/json`;
-    const faaRes = await fetch(url);
-
-    if (!faaRes.ok) {
-      console.error("FAA airport status HTTP error:", faaRes.status, await faaRes.text());
-      // Return a benign object so the front-end can still render using its model.
-      return res.status(200).json({
-        airport: code,
-        groundDelay: false,
-        groundStop: false,
-        avgDelayMinutes: null
-      });
+    const { airport } = req.query;
+    if (!airport) {
+      return res.status(400).json({ error: "Missing airport code" });
     }
 
-    const data = await faaRes.json();
-    const status = data.status || {};
+    const apiKey = process.env.AVSTACK_API_KEY;
+    if (!apiKey) {
+      // Fall back to a static mock
+      return res.status(200).json(mockStatus(airport));
+    }
 
-    // Example FAA field formats:
-    //   status.type: "GROUND_DELAY", "GROUND_STOP", "DELAY", null, etc.
-    //   status.avgDelay: "27 minutes", "1 hour 15 minutes", null, etc.
-    const type = (status.type || "").toUpperCase();
+    // Very lightweight heuristic:
+    // - Pull a handful of recent arrivals for this airport
+    // - Compute avg delay in minutes
+    const url = new URL("http://api.aviationstack.com/v1/flights");
+    url.searchParams.set("access_key", apiKey);
+    url.searchParams.set("arr_iata", airport.toUpperCase());
+    url.searchParams.set("limit", "25");
 
-    const groundDelay = type.includes("GROUND_DELAY");
-    const groundStop = type.includes("GROUND_STOP");
+    const upstream = await fetch(url.toString());
+    if (!upstream.ok) {
+      console.warn("[airport-status] upstream non-200", upstream.status);
+      return res.status(200).json(mockStatus(airport));
+    }
 
-    let avgDelayMinutes = null;
-    if (status.avgDelay) {
-      // Extract the first number in minutes from strings like "27 minutes" or "45 min".
-      const match = String(status.avgDelay).match(/(\d+)\s*min/i);
-      if (match) {
-        avgDelayMinutes = parseInt(match[1], 10);
-      } else {
-        // Fallback: if we see "1 hour 15 minutes" etc, grab the first number and approximate.
-        const hoursMatch = String(status.avgDelay).match(/(\d+)\s*hour/i);
-        if (hoursMatch) {
-          const hours = parseInt(hoursMatch[1], 10);
-          avgDelayMinutes = hours * 60;
+    const json = await upstream.json();
+    const flights = Array.isArray(json.data) ? json.data : [];
+
+    let totalDelay = 0;
+    let count = 0;
+    let groundStop = false;
+    let groundDelay = false;
+
+    for (const f of flights) {
+      const arr = f.arrival || {};
+      const sched = arr.scheduled;
+      const est = arr.estimated || arr.actual;
+
+      if (sched && est) {
+        const dSched = new Date(sched).getTime();
+        const dEst = new Date(est).getTime();
+        const diffMin = Math.round((dEst - dSched) / 60000);
+        if (Number.isFinite(diffMin)) {
+          totalDelay += diffMin;
+          count++;
         }
       }
+
+      const status = (f.flight_status || "").toLowerCase();
+      if (status === "cancelled") groundStop = true;
+      if (status === "delayed") groundDelay = true;
     }
 
-    return res.status(200).json({
-      airport: code,
-      groundDelay,
+    const avgDelayMinutes = count > 0 ? Math.round(totalDelay / count) : 0;
+
+    const result = {
+      airport: airport.toUpperCase(),
+      avgDelayMinutes,
       groundStop,
-      avgDelayMinutes
-    });
+      groundDelay,
+      source: "aviationstack-derived",
+    };
+
+    return res.status(200).json(result);
   } catch (err) {
-    console.error("FAA airport status lookup failed:", err);
-    // Fail soft: send a neutral object so the UI can fallback to modeled behavior.
-    return res.status(200).json({
-      airport: code,
-      groundDelay: false,
-      groundStop: false,
-      avgDelayMinutes: null
-    });
+    console.error("[airport-status] error", err);
+    return res.status(200).json(mockStatus(req.query.airport || "UNK"));
   }
-};
+}
+
+function mockStatus(airport) {
+  // Reasonable default for when upstream fails or key is missing
+  return {
+    airport: (airport || "UNK").toUpperCase(),
+    avgDelayMinutes: 5,
+    groundStop: false,
+    groundDelay: false,
+    source: "mock",
+  };
+}
