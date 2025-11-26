@@ -1,79 +1,48 @@
 // api/tsa.js
-// Template for integrating a third-party TSA wait-time provider.
-// Fall back to nulls if anything fails so the front-end can still use modeled times.
-
-const TSA_API_URL = process.env.TSA_API_URL;   // e.g. "https://example.com/tsa/waits"
-const TSA_API_KEY = process.env.TSA_API_KEY;   // from your provider / RapidAPI
-
-module.exports = async (req, res) => {
-  const { airport } = req.query;
-
-  if (!airport) {
-    return res.status(400).json({ error: "airport code required, e.g. ?airport=SAN" });
-  }
-
-  const code = String(airport).toUpperCase().trim();
-
-  // If you haven't configured a real TSA provider yet, just return nulls.
-  if (!TSA_API_URL || !TSA_API_KEY) {
-    return res.status(200).json({
-      airport: code,
-      standardMin: null,
-      standardMax: null,
-      preMin: null,
-      preMax: null
-    });
-  }
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
   try {
-    // This shape will depend on your provider; adjust query/headers as needed.
-    const url = `${TSA_API_URL}?airport=${encodeURIComponent(code)}`;
-
-    const tsaRes = await fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": TSA_API_KEY   // or "X-RapidAPI-Key", etc.
-      }
-    });
-
-    if (!tsaRes.ok) {
-      console.error("TSA API HTTP error:", tsaRes.status, await tsaRes.text());
-      return res.status(200).json({
-        airport: code,
-        standardMin: null,
-        standardMax: null,
-        preMin: null,
-        preMax: null
-      });
+    const { airport } = req.query;
+    if (!airport) {
+      return res.status(400).json({ error: "Missing airport code" });
     }
 
-    const data = await tsaRes.json();
+    const now = new Date();
+    const hour = now.getHours();
 
-    // Map the provider's response into your normalized shape.
-    // Example (you will need to adapt this):
-    //   data might look like:
-    //   { standard: { min: 10, max: 20 }, pre: { min: 3, max: 7 } }
+    // crude time-of-day heuristic
+    let standardMin = 5;
+    let standardMax = 15;
+    let preMin = 0;
+    let preMax = 5;
 
-    const standardMin = data.standard?.min ?? null;
-    const standardMax = data.standard?.max ?? null;
-    const preMin = data.pre?.min ?? null;
-    const preMax = data.pre?.max ?? null;
+    if (hour >= 5 && hour < 9) {
+      // early AM rush
+      standardMin = 20;
+      standardMax = 40;
+      preMin = 5;
+      preMax = 15;
+    } else if (hour >= 15 && hour < 20) {
+      // afternoon / evening
+      standardMin = 15;
+      standardMax = 30;
+      preMin = 5;
+      preMax = 10;
+    }
 
-    return res.status(200).json({
-      airport: code,
+    const payload = {
+      airport: airport.toUpperCase(),
       standardMin,
       standardMax,
       preMin,
-      preMax
-    });
+      preMax,
+      source: "modeled", // label so you can show 'modeled TSA wait' if you want
+    };
+
+    return res.status(200).json(payload);
   } catch (err) {
-    console.error("TSA API lookup failed:", err);
-    return res.status(200).json({
-      airport: code,
-      standardMin: null,
-      standardMax: null,
-      preMin: null,
-      preMax: null
-    });
+    console.error("[tsa] error", err);
+    return res.status(500).json({ error: "Unexpected server error" });
   }
-};
+}
