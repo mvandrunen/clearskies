@@ -246,3 +246,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Unexpected server error in /api/flight" });
   }
 }
+
+console.log("🔵 FlightAware FULL JSON:", JSON.stringify(json).substr(0, 5000));
+console.log("🟡 AviationStack FULL JSON:", JSON.stringify(json).substr(0, 5000));
